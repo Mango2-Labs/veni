@@ -6,14 +6,13 @@ import { useParams } from "next/navigation";
 import { useSelectedWalletAccount } from "@solana/react";
 import { address as toAddress, isAddress, type Address } from "@solana/kit";
 import { fetchAllMaybeEvent, type Event as EventAccount } from "@veni/client";
-import { chainTime, describeError, fetchEventAddressesOf } from "@veni/sdk";
+import { cardOfEvent, chainTime, describeError, fetchEventAddressesOf } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { EventCard } from "@/components/EventCard";
 import { PastEventList } from "@/components/PastEventList";
 import { WalletName } from "@/components/WalletName";
 import { turnoutPercent, useHostPage } from "@/lib/archive-client";
 import { initialsOf } from "@/lib/host-profile";
-import { cardOfEvent } from "@/lib/event-cards";
 import { isLumaSlug } from "@/lib/events";
 import { veniReader } from "@/lib/veni";
 

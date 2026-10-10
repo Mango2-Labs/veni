@@ -16,13 +16,14 @@ import {
   getCheckInInstructions,
   getCheckInWithCodeInstructions,
   signCheckIn,
+  stampDateOf,
   ticketHoldEndsAt,
   ticketRevenueOf,
   type VeniClient,
 } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { DoorScanner } from "@/components/DoorScanner";
-import { CityStamp, coverClassOf, stampDateOf } from "@/components/EventCard";
+import { CityStamp, coverClassOf } from "@/components/EventCard";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";

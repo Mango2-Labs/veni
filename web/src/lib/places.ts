@@ -1,9 +1,8 @@
 // Event places: the host form's search and the pin the program stores. Search uses
 // Nominatim (OpenStreetMap): free and keyless, but one search per request, with credit.
-import type { GeoPointArgs } from "@veni/client";
+import type { MapPoint } from "@veni/sdk";
 
-/** A spot on the map, in degrees. */
-export type MapPoint = { latitude: number; longitude: number };
+export { fromGeoPoint, mapsLink, toGeoPoint, type MapPoint } from "@veni/sdk";
 
 export type Place = MapPoint & {
   /** What the place is called, such as "LX Factory". */
@@ -15,9 +14,6 @@ export type Place = MapPoint & {
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 export const OPENSTREETMAP_COPYRIGHT = "https://www.openstreetmap.org/copyright";
-
-/** The program stores degrees as whole millionths. */
-const MICRODEGREES = 1_000_000;
 
 /** Places matching what the host typed, best first, named in the browser's language. */
 export async function searchPlaces(query: string, signal: AbortSignal): Promise<Place[]> {
@@ -31,19 +27,6 @@ export async function searchPlaces(query: string, signal: AbortSignal): Promise<
   if (!response.ok) throw new Error("Place search isn't answering. Type the city and venue below instead.");
   const results = (await response.json()) as NominatimResult[];
   return results.map(placeOf).filter((place) => place !== undefined);
-}
-
-export function toGeoPoint({ latitude, longitude }: MapPoint): GeoPointArgs {
-  return { latitude: Math.round(latitude * MICRODEGREES), longitude: Math.round(longitude * MICRODEGREES) };
-}
-
-export function fromGeoPoint({ latitude, longitude }: GeoPointArgs): MapPoint {
-  return { latitude: Number(latitude) / MICRODEGREES, longitude: Number(longitude) / MICRODEGREES };
-}
-
-/** Opens the spot in Google Maps, or the phone's maps app. */
-export function mapsLink({ latitude, longitude }: MapPoint) {
-  return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 }
 
 type NominatimResult = {
