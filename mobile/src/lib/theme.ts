@@ -6,11 +6,19 @@ export const colors = {
   line: '#DCE5F0',
   paper: '#FFFFFF',
   sky: '#EAF2FB',
+  lineDk: '#C5D3E5',
+  skyDk: '#D6E5F6',
   orange: '#F26B3A',
+  orangeDk: '#DD5A2B',
   orangeText: '#B2431A',
+  orangeSoft: '#FDE8DF',
+  orangeInk: '#5E2A15',
   teal: '#13A89E',
   tealText: '#0E7C74',
+  tealSoft: '#DDF4F1',
   gold: '#FFC83D',
+  goldSoft: '#FFF3CC',
+  goldInk: '#6B4A00',
 } as const
 
 export const fonts = {

@@ -20,16 +20,6 @@ export function useWalletBalances() {
   })
 }
 
-/** Both stake tokens are dollars with 6 decimals: "$12.25". */
-export function formatUsd(baseUnits: bigint) {
-  return `$${(Number(baseUnits) / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`
-}
-
-/** "$10" or "$12.25": without empty cents, for cards and buttons. */
-export function formatUsdShort(baseUnits: bigint) {
-  return formatUsd(baseUnits).replace(/\.00$/, '')
-}
-
 export function tokenLabel(mint: Address) {
   return mint === TEST_USD_MINT ? 'Test USD' : mint === USDC_MINT ? 'USDC' : 'tokens'
 }
