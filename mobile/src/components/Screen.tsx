@@ -8,11 +8,14 @@ import { colors, type } from '@/lib/theme'
 export function TabScreen({
   title,
   children,
+  action,
   refreshing,
   onRefresh,
 }: {
   title: string
   children: ReactNode
+  /** A button beside the account menu, like search. */
+  action?: ReactNode
   /** Pull to refresh, when the page can reload. */
   refreshing?: boolean
   onRefresh?: () => void
@@ -23,7 +26,10 @@ export function TabScreen({
         <Text accessibilityRole="header" style={type.title}>
           {title}
         </Text>
-        <AccountMenu />
+        <View className="flex-row items-center gap-2">
+          {action}
+          <AccountMenu />
+        </View>
       </View>
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}

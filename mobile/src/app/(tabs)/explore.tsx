@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Plus } from 'lucide-react-native'
-import { describeError } from '@veni/sdk'
+import { Plus, Search, X } from 'lucide-react-native'
+import { describeError, type EventCardData } from '@veni/sdk'
 import { Button } from '@/components/Button'
 import { EventCard } from '@/components/EventCard'
 import { TabScreen } from '@/components/Screen'
@@ -13,12 +13,63 @@ export default function Explore() {
   const router = useRouter()
   const events = useEventCards()
   const [city, setCity] = useState<string>()
+  const [searching, setSearching] = useState(false)
+  const [query, setQuery] = useState('')
   const cards = useMemo(() => events.data ?? [], [events.data])
   const cities = useMemo(() => [...new Set(cards.map((card) => card.city))], [cards])
-  const shown = city ? cards.filter((card) => card.city === city) : cards
+  const words = searchWords(query)
+  const shown = cards.filter((card) => (!city || card.city === city) && matches(card, words))
+
+  function closeSearch() {
+    setQuery('')
+    setSearching(false)
+  }
 
   return (
-    <TabScreen title="Find events" refreshing={events.isRefetching} onRefresh={() => events.refetch()}>
+    <TabScreen
+      title="Find events"
+      refreshing={events.isRefetching}
+      onRefresh={() => events.refetch()}
+      action={
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Search events"
+          onPress={() => (searching ? closeSearch() : setSearching(true))}
+          style={{ width: 40, height: 40, borderRadius: 20 }}
+          className="items-center justify-center active:bg-sky"
+        >
+          <Search color={colors.ink} size={22} />
+        </Pressable>
+      }
+    >
+      {searching ? (
+        <View
+          className="flex-row items-center"
+          style={{ minHeight: 48, borderRadius: radius.button, borderWidth: 2, borderColor: colors.lineDk, paddingLeft: 14 }}
+        >
+          <Search color={colors.muted} size={18} />
+          <TextInput
+            accessibilityLabel="Search events"
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Events, hosts, cities"
+            placeholderTextColor={colors.muted}
+            autoFocus
+            autoCorrect={false}
+            returnKeyType="search"
+            style={{ flex: 1, paddingHorizontal: 10, fontFamily: fonts.semibold, fontSize: 16, color: colors.ink }}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+            onPress={closeSearch}
+            style={{ width: 44, height: 44 }}
+            className="items-center justify-center"
+          >
+            <X color={colors.ink2} size={20} />
+          </Pressable>
+        </View>
+      ) : null}
       {cities.length > 0 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginHorizontal: -20 }}>
           <View style={{ width: 10 }} />
@@ -45,6 +96,12 @@ export default function Explore() {
         </View>
       ) : null}
 
+      {events.data && shown.length === 0 ? (
+        <Text style={{ ...type.body, textAlign: 'center', paddingVertical: 24 }}>
+          {words.length > 0 ? `No events match "${query.trim()}".` : 'No events here yet.'}
+        </Text>
+      ) : null}
+
       {shown.map((card) => (
         <EventCard key={card.key} event={card} onPress={card.href ? () => router.push(card.href as `/e/${string}`) : undefined} />
       ))}
@@ -64,6 +121,22 @@ export default function Explore() {
       ) : null}
     </TabScreen>
   )
+}
+
+/** Lowercase words without accents, so "sao paulo" finds São Paulo. */
+function searchWords(text: string) {
+  return fold(text).split(/\s+/).filter(Boolean)
+}
+
+function fold(text: string) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
+
+/** Every word appears in the name, host, city or venue. */
+function matches(card: EventCardData, words: string[]) {
+  if (words.length === 0) return true
+  const haystack = fold([card.title, card.hostName, card.city, card.place].join(' '))
+  return words.every((word) => haystack.includes(word))
 }
 
 function Filter({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
