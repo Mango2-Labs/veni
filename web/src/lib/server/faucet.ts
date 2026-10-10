@@ -27,14 +27,20 @@ export async function giveTestFunds(faucet: KeyPairSigner, rpcUrl: string, walle
   }
 }
 
-export function faucetSigner() {
-  const path = process.env.FAUCET_KEYPAIR;
-  if (!path) throw new Error("The faucet isn't set up: FAUCET_KEYPAIR should name its keypair file.");
-  return createKeyPairSignerFromBytes(readKeypairFile(path));
-}
-
-export function readKeypairFile(path: string) {
-  return new Uint8Array(JSON.parse(readFileSync(path, "utf8")));
+/**
+ * The faucet's key from FAUCET_KEYPAIR: the path of its keypair file, or, on a
+ * host without the file like Vercel, the file's contents ([12,34,…]).
+ */
+export async function faucetSigner() {
+  const setting = process.env.FAUCET_KEYPAIR?.trim();
+  if (!setting) throw new Error("The faucet isn't set up: FAUCET_KEYPAIR should hold its keypair or name its keypair file.");
+  try {
+    const keypair = setting.startsWith("[") ? setting : readFileSync(setting, "utf8");
+    return await createKeyPairSignerFromBytes(new Uint8Array(JSON.parse(keypair)));
+  } catch {
+    // Not the error itself: the API returns it, and it can quote the setting, which may be the key.
+    throw new Error("The faucet isn't set up: FAUCET_KEYPAIR can't be read.");
+  }
 }
 
 /** The wallet address in a request's JSON body. */

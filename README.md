@@ -22,7 +22,7 @@ Also:
 
 ## Try it on devnet
 
-Veni runs on Solana devnet with test dollars, so switch your wallet to devnet first:
+Veni is live at **[veni-phi.vercel.app](https://veni-phi.vercel.app)**, on Solana devnet with test dollars. Switch your wallet to devnet first:
 
 - **Seed Vault Wallet** (built into Seeker): choose Devnet as the network in its settings.
 - **Phantom:** Settings → Developer Settings → turn on Testnet Mode → Solana → Devnet.
