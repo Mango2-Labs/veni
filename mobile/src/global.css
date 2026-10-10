@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@import 'uniwind';
+
+/* Veni's brand tokens, as in web/src/app/globals.css and brand.md. */
+@theme {
+  --color-ink: #14223F;
+  --color-ink-2: #46566F;
+  --color-muted: #5B6B86;
+  --color-line: #DCE5F0;
+  --color-line-dk: #C5D3E5;
+  --color-paper: #FFFFFF;
+  --color-sky: #EAF2FB;
+  --color-sky-dk: #D6E5F6;
+  --color-orange: #F26B3A;
+  --color-orange-dk: #DD5A2B;
+  --color-orange-text: #B2431A;
+  --color-orange-soft: #FDE8DF;
+  --color-orange-ink: #5E2A15;
+  --color-teal: #13A89E;
+  --color-teal-text: #0E7C74;
+  --color-teal-soft: #DDF4F1;
+  --color-teal-ink: #1F4D49;
+  --color-gold: #FFC83D;
+  --color-gold-soft: #FFF3CC;
+
+}

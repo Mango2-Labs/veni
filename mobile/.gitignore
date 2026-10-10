@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Generated native folder (expo prebuild)
+/android
+/ios
+
+# Release signing: never commit
+keystores/
+keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+
+# Metro
+.metro-health-check*
+
+# Local settings
+.env
+.env*.local
+
+# TypeScript
+*.tsbuildinfo

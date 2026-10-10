@@ -39,6 +39,7 @@ Then tap **Get test funds** on Veni for 50 test dollars and a little SOL.
 | `sdk` | Talks to the program: the RPC client, reading events and sign-ups, check-in codes, payout rules |
 | `crank` | Settles events, pays guests and hosts, closes events |
 | `web` | The Next.js site and the API behind it |
+| `mobile` | The Seeker (Solana Mobile) app: Expo and Mobile Wallet Adapter, for Android |
 | `tests` | LiteSVM tests for the program and crank |
 
 ## Instructions
