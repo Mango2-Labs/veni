@@ -10,8 +10,9 @@ import {
   type UiWallet,
   type UiWalletAccount,
 } from "@wallet-standard/react";
-import { SOLANA_CLUSTER, formatSol, rpc, shortAddress } from "@/lib/solana";
-import { usernameInitials } from "@veni/sdk";
+import { SOLANA_CLUSTER, shortAddress } from "@/lib/solana";
+import { fetchWalletBalances, LOW_SOL_LAMPORTS, STAKE_MINTS, usernameInitials, type WalletBalances } from "@veni/sdk";
+import { formatUsd, tokenLabel, veniReader } from "@/lib/veni";
 import { useUsernameOf } from "@/lib/usernames-client";
 
 const INSTALL_LINKS = [
@@ -184,7 +185,7 @@ function ConnectedMenu({
   onNavigate: () => void;
   onDisconnected: () => void;
 }) {
-  const balance = useBalance(account.address);
+  const balances = useWalletBalances(account.address);
   const [copied, setCopied] = useState(false);
 
   async function copyAddress() {
@@ -213,9 +214,7 @@ function ConnectedMenu({
       <p className="menu-label">
         {wallet.name} · {SOLANA_CLUSTER}
       </p>
-      <p className="menu-balance">
-        {balance === undefined ? "Loading balance…" : balance === null ? "Balance unavailable" : `${formatSol(balance)} SOL`}
-      </p>
+      <MenuBalance balances={balances} />
       <Link className="menu-item" role="menuitem" href="/me" onClick={onNavigate}>
         View profile
       </Link>
@@ -269,21 +268,38 @@ function DisconnectItem({ wallet, onDisconnected }: { wallet: UiWallet; onDiscon
   );
 }
 
+/** The dollars this wallet can stake, and a warning only when SOL for fees runs low. */
+function MenuBalance({ balances }: { balances: WalletBalances | null | undefined }) {
+  if (balances === undefined) return <p className="menu-balance">…</p>;
+  if (balances === null) return <p className="menu-note">Balance unavailable</p>;
+  const held = balances.dollars.filter(({ amount }) => amount > 0n);
+  const shown = held.length > 0 ? held : [{ mint: STAKE_MINTS[0], amount: 0n }];
+  return (
+    <>
+      {shown.map(({ mint, amount }) => (
+        <p key={mint} className="menu-balance">
+          {formatUsd(amount)} <small className="menu-token">{tokenLabel(mint)}</small>
+        </p>
+      ))}
+      {balances.lamports < LOW_SOL_LAMPORTS && <p className="menu-note menu-error">Add a little SOL for network fees.</p>}
+    </>
+  );
+}
+
 // undefined while loading, null if the RPC call failed
-function useBalance(walletAddress: string) {
-  const [balance, setBalance] = useState<bigint | null>();
+function useWalletBalances(walletAddress: string) {
+  const [balances, setBalances] = useState<WalletBalances | null>();
 
   useEffect(() => {
-    const abortController = new AbortController();
-    rpc
-      .getBalance(address(walletAddress))
-      .send({ abortSignal: abortController.signal })
-      .then(({ value }) => setBalance(value))
-      .catch(() => {
-        if (!abortController.signal.aborted) setBalance(null);
-      });
-    return () => abortController.abort();
+    let isCurrent = true;
+    fetchWalletBalances(veniReader, address(walletAddress)).then(
+      (result) => isCurrent && setBalances(result),
+      () => isCurrent && setBalances(null),
+    );
+    return () => {
+      isCurrent = false;
+    };
   }, [walletAddress]);
 
-  return balance;
+  return balances;
 }

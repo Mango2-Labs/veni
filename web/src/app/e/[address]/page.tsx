@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { useSelectedWalletAccount, useSignMessage } from "@solana/react";
 import type { UiWalletAccount } from "@wallet-standard/react";
 import { address as toAddress, fetchEncodedAccount, isAddress, type Address, type KeyPairSigner } from "@solana/kit";
-import { decodeEvent, type Event as EventAccount } from "@veni/client";
+import { decodeEvent, TEST_USD_MINT, type Event as EventAccount } from "@veni/client";
 import { archiveThrough, crankEvent, type CrankReport } from "@veni/crank";
 import {
   chainTime,
@@ -26,6 +26,7 @@ import { CityStamp, coverClassOf, stampDateOf } from "@/components/EventCard";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";
+import { TestFundsButton } from "@/components/TestFundsButton";
 import { WalletName } from "@/components/WalletName";
 import { turnoutPercent, useHostPage, usePastEventsAttendedBy } from "@/lib/archive-client";
 import { saveEventDescription, useEventDescription, type SignMessage } from "@/lib/description-client";
@@ -635,10 +636,11 @@ function GuestActions({
   const total = formatUsd(totalOf(event));
   const isPaid = terms.ticketPrice > 0n;
   const [balance, setBalance] = useState<bigint>();
+  const [fundedAt, setFundedAt] = useState(0);
 
   useEffect(() => {
     tokenBalance(wallet, event.stakeMint).then(setBalance, () => setBalance(undefined));
-  }, [wallet, event.stakeMint, snapshot]);
+  }, [wallet, event.stakeMint, snapshot, fundedAt]);
 
   const isHost = wallet === event.organizer;
   // At an event that requires approval, signing up is applying.
@@ -669,7 +671,7 @@ function GuestActions({
   return (
     <div className="app-form">
       <p className="action-note">
-        Your {tokenLabel(event.stakeMint)}: <b>{balance === undefined ? "…" : formatUsd(balance)}</b>
+        You have <b>{balance === undefined ? "…" : formatUsd(balance)}</b> {tokenLabel(event.stakeMint)}
       </p>
 
       {canSignUp && (
@@ -695,7 +697,12 @@ function GuestActions({
             }}
             onCancel={() => setIsNoticeOpen(false)}
           />
-          {notEnough && <span className="field-hint">Not enough {tokenLabel(event.stakeMint)}. Use “Get test funds” above.</span>}
+          {notEnough &&
+            (event.stakeMint === TEST_USD_MINT ? (
+              <TestFundsButton wallet={wallet} onFunded={() => setFundedAt(Date.now())} />
+            ) : (
+              <span className="field-hint">Not enough {tokenLabel(event.stakeMint)}.</span>
+            ))}
         </div>
       )}
 

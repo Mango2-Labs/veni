@@ -14,7 +14,3 @@ export const { rpc } = createVeniReader(BROWSER_RPC_URL);
 export function shortAddress(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
 }
-
-export function formatSol(lamports: bigint) {
-  return (Number(lamports) / 1e9).toLocaleString("en-US", { maximumFractionDigits: 4 });
-}

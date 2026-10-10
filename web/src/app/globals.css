@@ -66,6 +66,7 @@ a:focus-visible,input:focus-visible + label{outline:3px solid var(--orange);outl
 .copy-button:hover{background:var(--sky);color:var(--ink)}
 .copy-button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
 .menu-balance{padding:2px 12px 8px;font-family:var(--display);font-weight:800;font-size:20px}
+.menu-token{font-family:var(--body);font-size:13px;font-weight:700;color:var(--muted)}
 .menu-item{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 12px;border:0;border-radius:12px;background:none;font:inherit;font-size:16px;font-weight:700;color:var(--ink);text-align:left;text-decoration:none;cursor:pointer}
 .menu-item:hover,.menu-item:focus-visible{background:var(--sky);outline:none;color:var(--ink)}
 .menu-item:disabled{cursor:progress;opacity:.7}

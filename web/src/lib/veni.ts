@@ -5,7 +5,7 @@ import { useWalletAccountTransactionSigner } from "@solana/react";
 import type { UiWalletAccount } from "@wallet-standard/react";
 import type { Address } from "@solana/kit";
 import { TEST_USD_MINT, USDC_MINT, type Event as EventAccount } from "@veni/client";
-import { createVeniClient, tokenAccountOf } from "@veni/sdk";
+import { createVeniClient, fetchTokenBalance } from "@veni/sdk";
 import { BROWSER_RPC_URL, rpc } from "./solana";
 
 export const DEVNET = "solana:devnet";
@@ -40,12 +40,8 @@ export function formatUsdShort(baseUnits: bigint) {
 }
 
 /** The wallet's balance of a token, 0 when it has no account for it. */
-export async function tokenBalance(owner: Address, mint: Address) {
-  const tokenAccount = await tokenAccountOf(owner, mint);
-  const { value } = await veniReader.rpc.getAccountInfo(tokenAccount, { encoding: "base64", dataSlice: { offset: 0, length: 0 } }).send();
-  if (!value) return 0n;
-  const { value: balance } = await veniReader.rpc.getTokenAccountBalance(tokenAccount).send();
-  return BigInt(balance.amount);
+export function tokenBalance(owner: Address, mint: Address) {
+  return fetchTokenBalance(veniReader, owner, mint);
 }
 
 export type Stage = "open" | "running" | "ended" | "settled" | "refunding" | "cancelled";
