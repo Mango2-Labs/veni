@@ -198,6 +198,18 @@ function ConnectedMenu({
   return (
     <>
       {username && <p className="menu-name">{username}</p>}
+      <p className="menu-address">
+        <span className="mono">{shortAddress(account.address)}</span>
+        <button
+          type="button"
+          className="copy-button"
+          aria-label={copied ? "Address copied" : "Copy address"}
+          title={copied ? "Copied" : "Copy address"}
+          onClick={copyAddress}
+        >
+          {copied ? <CheckIcon /> : <CopyIcon />}
+        </button>
+      </p>
       <p className="menu-label">
         {wallet.name} · {SOLANA_CLUSTER}
       </p>
@@ -210,9 +222,6 @@ function ConnectedMenu({
       <Link className="menu-item" role="menuitem" href="/new" onClick={onNavigate}>
         Host an event
       </Link>
-      <button type="button" role="menuitem" className="menu-item" onClick={copyAddress}>
-        {copied ? "Copied" : "Copy address"}
-      </button>
       {/* Not every wallet supports disconnecting; for those, forgetting the account is enough */}
       {wallet.features.includes("standard:disconnect") ? (
         <DisconnectItem wallet={wallet} onDisconnected={onDisconnected} />
@@ -222,6 +231,23 @@ function ConnectedMenu({
         </button>
       )}
     </>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
   );
 }
 

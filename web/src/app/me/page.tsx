@@ -98,12 +98,6 @@ function Profile({ account, wallet }: { account: UiWalletAccount; wallet: Addres
               Change username
             </button>
           )}
-          {username && changeableAt !== undefined && openedAt < changeableAt && (
-            <p className="passport-note">
-              You can change your username after{" "}
-              {new Date(changeableAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}.
-            </p>
-          )}
         </div>
         <dl className="passport-stats">
           <div><dt>Events attended</dt><dd><b>{past.kind === "ready" ? attended.length : "…"}</b></dd></div>
