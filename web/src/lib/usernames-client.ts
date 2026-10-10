@@ -3,7 +3,7 @@
 // Usernames in the browser: one shared cache, filled by batched lookups, so a
 // guest list of 60 asks the server once.
 import { useEffect, useSyncExternalStore } from "react";
-import type { UsernameInput } from "./usernames";
+import type { UsernameInput } from "@veni/sdk";
 import { shortAddress } from "./solana";
 
 /** A wallet's username, or null once we know it has none. */

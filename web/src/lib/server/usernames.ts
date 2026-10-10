@@ -3,7 +3,7 @@
 // once every 24 hours, and a name given up stays reserved for 24 hours, so
 // nobody can take it straight away and pass as its old owner.
 import { address, getPublicKeyFromAddress, getUtf8Encoder, isAddress, verifySignature, type Address, type SignatureBytes } from "@solana/kit";
-import { normalizeUsername, USERNAME_CHANGE_HOURS, usernameMessage, usernameProblem, type UsernameInput } from "../usernames";
+import { normalizeUsername, USERNAME_CHANGE_HOURS, usernameMessage, usernameProblem, type UsernameInput } from "@veni/sdk";
 import { getDatabase } from "./db";
 
 /** How old a signature may be: long enough to approve, too short to replay. */

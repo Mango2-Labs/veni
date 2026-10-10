@@ -6,7 +6,7 @@ import { useSelectedWalletAccount } from "@solana/react";
 import type { UiWalletAccount } from "@wallet-standard/react";
 import { fetchEncodedAccounts, type Address } from "@solana/kit";
 import { decodeEvent, type Event as EventAccount } from "@veni/client";
-import { chainTime, describeError, fetchGuestsOfWallet } from "@veni/sdk";
+import { chainTime, describeError, fetchGuestsOfWallet, usernameInitials } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { EventCard } from "@/components/EventCard";
 import { ProfileStamps } from "@/components/PastEventList";
@@ -14,7 +14,6 @@ import { useJson, usePastEventsAttendedBy } from "@/lib/archive-client";
 import { cardOfEvent } from "@/lib/event-cards";
 import { isEventAccount } from "@/lib/events";
 import { UsernamePicker } from "@/components/UsernamePicker";
-import { usernameInitials } from "@/lib/usernames";
 import { useUsernameOf } from "@/lib/usernames-client";
 import { veniReader } from "@/lib/veni";
 

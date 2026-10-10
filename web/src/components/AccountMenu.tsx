@@ -11,7 +11,7 @@ import {
   type UiWalletAccount,
 } from "@wallet-standard/react";
 import { SOLANA_CLUSTER, formatSol, rpc, shortAddress } from "@/lib/solana";
-import { usernameInitials } from "@/lib/usernames";
+import { usernameInitials } from "@veni/sdk";
 import { useUsernameOf } from "@/lib/usernames-client";
 
 const INSTALL_LINKS = [

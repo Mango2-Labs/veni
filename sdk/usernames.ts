@@ -1,5 +1,5 @@
-// Usernames: each wallet picks one by signing a message, with no fee. Browser
-// and server build the message here, so both sign and check the same text.
+// Usernames: each wallet picks one by signing a message, with no fee. The website, its
+// server and the Seeker app build the message here, so all sign and check the same text.
 import type { Address } from "@solana/kit";
 
 export const USERNAME_MIN_LENGTH = 3;

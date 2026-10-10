@@ -1,6 +1,6 @@
 import { isAddress, type Address } from "@solana/kit";
 import { describeError } from "@veni/sdk";
-import type { UsernameInput } from "@/lib/usernames";
+import type { UsernameInput } from "@veni/sdk";
 import { claimUsername, getUsernames, MAX_WALLETS_PER_LOOKUP } from "@/lib/server/usernames";
 
 /** Usernames for up to 100 wallets: ?wallets=a,b,c */

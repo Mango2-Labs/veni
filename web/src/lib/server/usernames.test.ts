@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { PGlite } from "@electric-sql/pglite";
 import { generateKeyPairSigner, getUtf8Encoder, signBytes, type KeyPairSigner } from "@solana/kit";
-import { usernameMessage } from "../usernames";
+import { usernameMessage } from "@veni/sdk";
 import { createPgliteDatabase, useDatabaseForTests } from "./db";
 import { claimUsername, getUsername, getUsernames, usernameUnavailableReason } from "./usernames";
 

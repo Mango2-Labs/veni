@@ -1,5 +1,5 @@
 import { describeError } from "@veni/sdk";
-import { normalizeUsername, usernameProblem } from "@/lib/usernames";
+import { normalizeUsername, usernameProblem } from "@veni/sdk";
 import { usernameUnavailableReason } from "@/lib/server/usernames";
 
 /** Whether a wallet can pick a username: ?name=menor&wallet=… */

@@ -12,7 +12,7 @@ import {
   USERNAME_MIN_LENGTH,
   usernameMessage,
   usernameProblem,
-} from "@/lib/usernames";
+} from "@veni/sdk";
 import { checkUsername, saveUsername, useUsernameOf } from "@/lib/usernames-client";
 
 /** Asks a signed-in wallet with no username to pick one before going on. */
