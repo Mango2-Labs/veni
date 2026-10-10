@@ -1,0 +1,14 @@
+{
+  "idl": "target/idl/veni.json",
+  "before": [
+    "./codama-visitors.mjs#oneWordConstantNames",
+    "./codama-visitors.mjs#stampCountAccount",
+    "./codama-visitors.mjs#eventCpiDefaults"
+  ],
+  "scripts": {
+    "js": {
+      "from": "@codama/renderers-js",
+      "args": ["clients/veni", { "kitImportStrategy": "rootOnly" }]
+    }
+  }
+}

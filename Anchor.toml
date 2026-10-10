@@ -1,0 +1,27 @@
+# Program tests run in-process on LiteSVM, so `anchor test` starts no validator.
+skip_local_validator = true
+
+[toolchain]
+anchor_version = "1.2.0"
+package_manager = "bun"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+veni = "7oLjHhpFXGq48fGWLWBPwysQJBvbEAyiGF489tXW8kao"
+
+[programs.devnet]
+veni = "7oLjHhpFXGq48fGWLWBPwysQJBvbEAyiGF489tXW8kao"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/dev-wallet.json"
+
+[scripts]
+test = "cargo test --lib --quiet && bun test ./tests"
+
+[hooks]
+# Regenerate @veni/client from the fresh IDL, so it never drifts from the program.
+post_build = "bunx codama run js"

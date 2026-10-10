@@ -1,0 +1,29 @@
+pitch-deck/
+
+# Anchor and Rust
+.anchor
+target
+**/*.rs.bk
+test-ledger
+.surfpool
+
+# JavaScript
+node_modules
+
+.DS_Store
+
+# Next.js build output (the app is in web/, which has its own ignores)
+.next
+
+# Secrets. The root .env holds the devnet RPC's API key.
+.env*
+!.env.example
+
+# Notes and tools for the team
+brand.md
+TODOS.md
+docs/
+scripts/
+**/CLAUDE.md
+**/AGENTS.md
+**/.claude/

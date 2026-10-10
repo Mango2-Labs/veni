@@ -1,0 +1,15 @@
+{
+  "name": "@veni/crank",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Moves Veni events along: settles them, pays guests and hosts, and closes them.",
+  "type": "module",
+  "exports": "./index.ts",
+  "dependencies": {
+    "@veni/client": "workspace:*",
+    "@veni/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "@solana/kit": "^8.4.0"
+  }
+}

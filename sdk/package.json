@@ -1,0 +1,18 @@
+{
+  "name": "@veni/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Talks to the Veni program: the RPC client, reading events and sign-ups, check-in codes, payout rules and errors.",
+  "type": "module",
+  "exports": "./index.ts",
+  "dependencies": {
+    "@veni/client": "workspace:*",
+    "@solana-program/token": "0.17.0",
+    "@solana/kit-plugin-rpc": "0.19.0",
+    "@solana/kit-plugin-signer": "0.19.0",
+    "@solana/sysvars": "8.4.0"
+  },
+  "peerDependencies": {
+    "@solana/kit": "^8.4.0"
+  }
+}
