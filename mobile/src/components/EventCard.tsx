@@ -1,6 +1,7 @@
 import { Image, Pressable, Text, View } from 'react-native'
 import { coverIndexOf, type EventCardData } from '@veni/sdk'
-import { Chip, TypeChips } from './Chip'
+import { Chip } from './Chip'
+import { TypeLabels } from './TypeLabels'
 import { CityStamp } from './CityStamp'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
@@ -26,6 +27,7 @@ export function EventCard({ event, onPress }: { event: EventCardData; onPress?: 
             {event.title}
           </Text>
         )}
+        <TypeLabels ticket={event.ticket} approval={event.approval} />
         <View style={{ position: 'absolute', right: 14, top: 14 }}>
           <CityStamp
             city={event.city}
@@ -43,7 +45,6 @@ export function EventCard({ event, onPress }: { event: EventCardData; onPress?: 
         </Text>
         <View className="mt-1 flex-row flex-wrap items-center" style={{ gap: 8 }}>
           {event.stage ? <Chip label={event.stage.label} tone={event.stage.className} /> : null}
-          <TypeChips ticket={event.ticket} approval={event.approval} />
           {event.hostRecord ? <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: colors.tealText }}>{event.hostRecord}</Text> : null}
         </View>
         <View

@@ -7,6 +7,7 @@ export function EventCard({ event }: { event: EventCardData }) {
     <>
       <div className={`event-card-cover ${event.cover ? "has-image" : coverClassOf(event.seed)}`}>
         {event.cover ? <Image src={event.cover} alt="" fill sizes="(max-width: 640px) 100vw, 400px" /> : event.title}
+        <TypeLabels ticket={event.ticket} approval={event.approval} />
         <CityStamp city={event.city} date={event.stampDate} />
       </div>
       <div className="event-card-body">
@@ -15,7 +16,6 @@ export function EventCard({ event }: { event: EventCardData }) {
         <span>{event.when} · {event.place}</span>
         <span className="event-card-tags">
           {event.stage && <span className={`stage ${event.stage.className}`}>{event.stage.label}</span>}
-          <TypeChips ticket={event.ticket} approval={event.approval} />
           {event.hostRecord && <span className="turnout">{event.hostRecord}</span>}
         </span>
         <span className="event-card-foot">
@@ -38,19 +38,19 @@ const ICONS = {
   approval: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4",
 };
 
-/** Free or paid, and whether the host approves guests. */
-export function TypeChips({ ticket, approval }: { ticket?: string; approval?: boolean }) {
+/** Free or paid, and whether the host approves guests, on the cover's top-left. */
+export function TypeLabels({ ticket, approval }: { ticket?: string; approval?: boolean }) {
   return (
-    <>
-      {ticket ? <TypeChip kind="paid" label={`Paid · ${ticket}`} /> : <TypeChip kind="free" label="Free" />}
-      {approval && <TypeChip kind="approval" label="Host approves" />}
-    </>
+    <span className="type-labels">
+      {ticket ? <TypeLabel kind="paid" label={`Paid · ${ticket}`} /> : <TypeLabel kind="free" label="Free" />}
+      {approval && <TypeLabel kind="approval" label="Approval required" />}
+    </span>
   );
 }
 
-function TypeChip({ kind, label }: { kind: keyof typeof ICONS; label: string }) {
+function TypeLabel({ kind, label }: { kind: keyof typeof ICONS; label: string }) {
   return (
-    <span className={`stage stage-${kind}`}>
+    <span className="type-label">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d={ICONS[kind]} />
       </svg>

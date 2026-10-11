@@ -274,10 +274,9 @@ a.host-card:hover{color:#FFFFFF;background:#22345C}
 .outcome-miss b{color:var(--orange-text)}
 .outcome-wait{grid-column:1/-1;background:var(--sky);color:var(--ink)}
 .event-tags{display:flex;flex-wrap:wrap;gap:8px}
-.stage-approval{background:var(--ink);color:#FFFFFF}
-.stage-free{background:var(--teal-soft);color:var(--teal-text)}
-.stage-paid{background:#FFFFFF;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
-.stage svg{margin-right:5px}
+.type-labels{position:absolute;left:14px;top:14px;z-index:1;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 118px)}
+.event-poster .type-labels{left:clamp(18px,3vw,32px);top:clamp(16px,3vw,28px);max-width:calc(100% - 150px)}
+.type-label{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.94);color:var(--ink);font-family:var(--body);font-size:13px;font-weight:800;line-height:1.2;letter-spacing:0;white-space:nowrap}
 .stage-waiting{background:var(--gold-soft);color:#6B4A00}
 .waiting-note{background:var(--gold-soft);border-radius:14px;padding:12px 14px;font-size:15px}
 .applicant-who{display:grid;gap:2px;font-size:14px}

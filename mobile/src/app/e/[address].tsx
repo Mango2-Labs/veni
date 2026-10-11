@@ -23,7 +23,8 @@ import {
   stampDateOf,
 } from '@veni/sdk'
 import { Button } from '@/components/Button'
-import { Chip, TypeChips } from '@/components/Chip'
+import { Chip } from '@/components/Chip'
+import { TypeLabels } from '@/components/TypeLabels'
 import { CityStamp } from '@/components/CityStamp'
 import { COVERS } from '@/components/EventCard'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
@@ -108,6 +109,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
             {terms.title}
           </Text>
         )}
+        <TypeLabels ticket={terms.ticketPrice > 0n ? formatUsdShort(terms.ticketPrice) : undefined} approval={terms.requiresApproval} inset={16} />
         <View style={{ position: 'absolute', right: 16, top: 16 }}>
           <CityStamp city={details.city} date={stampDateOf(startsAt)} color={cover ? colors.ink : tone.color} background={cover ? 'rgba(255,255,255,0.92)' : undefined} />
         </View>
@@ -117,9 +119,8 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
           {terms.title}
         </Text>
       ) : null}
-      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+      <View className="flex-row">
         <Chip label={STAGE_LABEL[stage]} tone={`stage-${stage}`} />
-        <TypeChips ticket={terms.ticketPrice > 0n ? formatUsdShort(terms.ticketPrice) : undefined} approval={terms.requiresApproval} />
       </View>
 
       <HostRow event={event} />
