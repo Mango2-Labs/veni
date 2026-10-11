@@ -81,6 +81,13 @@ CREATE TABLE IF NOT EXISTS event_descriptions (
   signed_at       timestamptz NOT NULL,
   signature       text NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS event_categories (
+  event_address   text PRIMARY KEY,
+  category        text NOT NULL,
+  signed_at       timestamptz NOT NULL,
+  signature       text NOT NULL
+);
 `;
 
 let database: Promise<Database> | undefined;

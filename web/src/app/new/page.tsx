@@ -11,6 +11,8 @@ import {
   accountExists,
   chainTime,
   describeError,
+  EVENT_CATEGORIES,
+  type EventCategory,
   getCreateOwnTokenAccountInstruction,
   tokenAccountOf,
 } from "@veni/sdk";
@@ -18,7 +20,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { PlaceSearch } from "@/components/PlaceSearch";
-import { saveEventDescription } from "@/lib/description-client";
+import { saveEventCategory, saveEventDescription } from "@/lib/description-client";
 import { doorKeyFor } from "@/lib/door-key";
 import { DESCRIPTION_LIMIT } from "@/lib/event-description";
 import { useHostPage } from "@/lib/archive-client";
@@ -86,6 +88,7 @@ function CreateEventForm({ account, lumaLink }: { account: UiWalletAccount; luma
   const [stake, setStake] = useState("10");
   const [capacity, setCapacity] = useState("60");
   const [requiresApproval, setRequiresApproval] = useState(false);
+  const [category, setCategory] = useState<EventCategory>("Meetup");
   const [isPaid, setIsPaid] = useState(false);
   const [ticketPrice, setTicketPrice] = useState("25");
   // "dates": the real start and end; "demo": starts in a few minutes, to try Veni now.
@@ -227,6 +230,9 @@ function CreateEventForm({ account, lumaLink }: { account: UiWalletAccount; luma
         // The event exists either way. If this fails, the host adds it from the event page.
         await saveEventDescription(signMessage, eventAddress, text).catch(() => undefined);
       }
+      setStatus({ busy: "Sign to save the category…" });
+      // As with the description, the event exists either way.
+      await saveEventCategory(signMessage, eventAddress, category).catch(() => undefined);
       router.push(`/e/${eventAddress}`);
     } catch (error) {
       setStatus({ error: describeError(error) });
@@ -318,6 +324,17 @@ function CreateEventForm({ account, lumaLink }: { account: UiWalletAccount; luma
             Try another city
           </button>
         </div>
+        <fieldset className="field choice-group">
+          <legend className="field-label">Category</legend>
+          <div className="choice-cards">
+            {EVENT_CATEGORIES.map((name) => (
+              <label key={name} className="choice-card">
+                <input type="radio" name="category" checked={category === name} onChange={() => setCategory(name)} />
+                <b>{name}</b>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <fieldset className="field choice-group">
           <legend className="field-label">Who can come</legend>
           <div className="choice-cards">

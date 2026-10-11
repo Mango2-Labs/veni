@@ -1,5 +1,6 @@
 // Events as cards: live ones on Find events, a profile or a host's page, and the examples
 // beside them. The website and the Seeker app draw the same cards from these.
+import type { EventCategory } from "./categories";
 import type { Address } from "@solana/kit";
 import type { Event as EventAccount } from "@veni/client";
 import { coverOf, formatUsdShort, locationOf, STAGE_LABEL, stageOf, type MapPoint } from "./events";
@@ -32,6 +33,8 @@ export type EventCardData = {
   /** "2 spots left", when it's nearly full. */
   spotsLeft?: string;
   stage?: { label: string; className: string };
+  /** Set by the host, stored by Veni's site. */
+  category?: EventCategory;
   /** Guests apply, and the host picks who comes. */
   approval?: boolean;
   point?: MapPoint;
@@ -83,6 +86,7 @@ type Example = Omit<EventCardData, "key" | "when" | "stampDate" | "seed"> & {
 const EXAMPLES: Example[] = [
   {
     title: "Solana Breakpoint",
+    category: "Conference",
     hostName: "Solana Foundation",
     hostLogo: "solana",
     dates: { when: "15–17 Nov", start: new Date(2026, 10, 15) },
@@ -94,6 +98,7 @@ const EXAMPLES: Example[] = [
   },
   {
     title: "Lagos DeFi meetup",
+    category: "Meetup",
     hostName: "Lagos Onchain",
     hostRecord: "87% of guests show up",
     inDays: 7,
@@ -106,6 +111,7 @@ const EXAMPLES: Example[] = [
   },
   {
     title: "Hacker house demo day",
+    category: "Demo day",
     hostName: "São Paulo Hacker House",
     hostRecord: "94% of guests show up",
     inDays: 13,
@@ -119,6 +125,7 @@ const EXAMPLES: Example[] = [
   },
   {
     title: "MonkeDAO members night",
+    category: "Party",
     hostName: "MonkeDAO",
     hostLogo: "monkedao",
     inDays: 9,
@@ -132,6 +139,7 @@ const EXAMPLES: Example[] = [
   },
   {
     title: "Solana Summit Singapore",
+    category: "Conference",
     hostName: "Superteam Singapore",
     hostLogo: "superteam-sg",
     inDays: 21,
@@ -144,6 +152,7 @@ const EXAMPLES: Example[] = [
   },
   {
     title: "Solana Summit Canada",
+    category: "Conference",
     hostName: "Superteam Canada",
     hostLogo: "superteam-ca",
     inDays: 28,
