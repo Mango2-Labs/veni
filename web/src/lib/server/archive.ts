@@ -1,7 +1,7 @@
 // Copies events and guests from the chain into the archive before the crank
 // closes them. It reads the chain itself, so nobody can write made-up history.
 import { fetchEncodedAccount, isSome, type Address } from "@solana/kit";
-import { decodeEvent, type Event as EventAccount } from "@veni/client";
+import { decodeEvent, FEE_BPS, type Event as EventAccount } from "@veni/client";
 import { createVeniReader, fetchGuests } from "@veni/sdk";
 import type { HostRecord, PastEvent } from "../host-profile";
 import { isEventAccount } from "../events";
@@ -93,6 +93,9 @@ type EventRow = {
   is_cancelled: boolean;
 };
 
+// Check-in closed, settled or cancelled.
+const IS_PAST = "(e.check_in_ends_at <= $2 OR e.is_settled OR e.is_cancelled)";
+
 const EVENT_COLUMNS = "e.address, e.organizer, e.title, e.host_name, e.city, e.venue, e.cover, e.luma_slug, e.starts_at, e.guest_count, e.attended_count, e.is_cancelled";
 
 function toPastEvent(row: EventRow): PastEvent {
@@ -117,7 +120,7 @@ export async function pastEventsAttendedBy(wallet: Address, nowSeconds = Math.fl
   const db = await getDatabase();
   const rows = await db.query<EventRow>(
     `SELECT ${EVENT_COLUMNS} FROM archived_guests g JOIN archived_events e ON e.address = g.event_address
-     WHERE g.wallet = $1 AND g.has_attended AND (e.check_in_ends_at <= $2 OR e.is_settled OR e.is_cancelled)
+     WHERE g.wallet = $1 AND g.has_attended AND ${IS_PAST}
      ORDER BY e.starts_at DESC LIMIT 100`,
     [wallet, nowSeconds],
   );
@@ -129,11 +132,59 @@ export async function pastEventsHostedBy(organizer: Address, nowSeconds = Math.f
   const db = await getDatabase();
   const rows = await db.query<EventRow>(
     `SELECT ${EVENT_COLUMNS} FROM archived_events e
-     WHERE e.organizer = $1 AND (e.check_in_ends_at <= $2 OR e.is_settled OR e.is_cancelled)
+     WHERE e.organizer = $1 AND ${IS_PAST}
      ORDER BY e.starts_at DESC LIMIT 100`,
     [organizer, nowSeconds],
   );
   return rows.map(toPastEvent);
+}
+
+export const HISTORY_PAGE_SIZE = 10;
+
+export type HistoryEvent = Pick<PastEvent, "address" | "title" | "hostName" | "city" | "startsAt"> & {
+  outcome: "checked-in" | "missed" | "cancelled";
+  /** What the guest made (+) or lost (-) beyond getting their stake back, in base units. */
+  result: string;
+};
+
+const FORFEITED = "(e.guest_count - e.attended_count) * e.stake_amount";
+// As close_guest pays it: everyone is refunded if the event was cancelled or nobody came;
+// otherwise attendees split no-shows' stakes after Veni's fee, rounding down.
+const RESULT = `CASE WHEN e.is_cancelled OR e.attended_count = 0 THEN 0
+  WHEN NOT g.has_attended THEN -e.stake_amount
+  ELSE div(${FORFEITED} - div(${FORFEITED} * ${FEE_BPS}, 10000), e.attended_count) END`;
+
+/** A wallet's past events, newest first, a page at a time, and all it earned from no-shows. */
+export async function historyOf(wallet: Address, offset = 0, nowSeconds = Math.floor(Date.now() / 1000)) {
+  const db = await getDatabase();
+  const rows = await db.query<{
+    address: string;
+    title: string;
+    host_name: string;
+    city: string;
+    starts_at: string | number | bigint;
+    has_attended: boolean;
+    is_cancelled: boolean;
+    result: string | number;
+    earned: string | number;
+  }>(
+    `SELECT e.address, e.title, e.host_name, e.city, e.starts_at, g.has_attended, e.is_cancelled,
+            ${RESULT} AS result, sum(GREATEST(${RESULT}, 0)) OVER () AS earned
+     FROM archived_guests g JOIN archived_events e ON e.address = g.event_address
+     WHERE g.wallet = $1 AND ${IS_PAST}
+     ORDER BY e.starts_at DESC, e.address LIMIT $3 OFFSET $4`,
+    [wallet, nowSeconds, HISTORY_PAGE_SIZE + 1, offset],
+  );
+  const events: HistoryEvent[] = rows.slice(0, HISTORY_PAGE_SIZE).map((row) => ({
+    address: row.address as Address,
+    title: row.title,
+    hostName: row.host_name,
+    city: row.city,
+    startsAt: Number(row.starts_at),
+    outcome: row.is_cancelled ? "cancelled" : row.has_attended ? "checked-in" : "missed",
+    result: String(row.result),
+  }));
+  return { events, earned: String(rows[0]?.earned ?? 0), hasMore: rows.length > HISTORY_PAGE_SIZE };
 }
 
 /** How a host's past events went. Turnout only counts events that ran. */
