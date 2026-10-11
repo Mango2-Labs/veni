@@ -1,9 +1,10 @@
 import { isAddress, type Address } from "@solana/kit";
 import { describeError } from "@veni/sdk";
 import type { UsernameInput } from "@veni/sdk";
+import { getPhotoVersions } from "@/lib/server/photos";
 import { claimUsername, getUsernames, MAX_WALLETS_PER_LOOKUP } from "@/lib/server/usernames";
 
-/** Usernames for up to 100 wallets: ?wallets=a,b,c */
+/** Usernames and photo versions for up to 100 wallets: ?wallets=a,b,c */
 export async function GET(request: Request) {
   const wallets = (new URL(request.url).searchParams.get("wallets") ?? "").split(",").filter(Boolean);
   if (wallets.length > MAX_WALLETS_PER_LOOKUP) {
@@ -13,7 +14,8 @@ export async function GET(request: Request) {
     return Response.json({ error: "One of those isn't a wallet address." }, { status: 400 });
   }
   try {
-    return Response.json({ usernames: await getUsernames(wallets as Address[]) });
+    const [usernames, photos] = await Promise.all([getUsernames(wallets as Address[]), getPhotoVersions(wallets as Address[])]);
+    return Response.json({ usernames, photos });
   } catch (error) {
     return Response.json({ error: `Couldn't read usernames: ${describeError(error)}` }, { status: 500 });
   }

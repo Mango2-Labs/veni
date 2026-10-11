@@ -52,6 +52,15 @@ CREATE TABLE IF NOT EXISTS hosts (
   registered_at   timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS photos (
+  wallet          text PRIMARY KEY,
+  image           bytea NOT NULL,
+  sha256          text NOT NULL,
+  signed_at       timestamptz NOT NULL,
+  signature       text NOT NULL,
+  updated_at      timestamptz NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS usernames (
   wallet          text PRIMARY KEY,
   username        text NOT NULL UNIQUE,
