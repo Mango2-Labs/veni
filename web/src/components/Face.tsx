@@ -3,9 +3,10 @@
 import { usernameInitials } from "@veni/sdk";
 import { usePhotoOf, useUsernameOf } from "@/lib/usernames-client";
 
-/** A person's photo, or their initials until they add one. */
-export function Face({ wallet, initials, className = "passport-face" }: { wallet: string; initials?: string; className?: string }) {
-  const photo = usePhotoOf(wallet);
+/** A person's photo (or `src`), else their initials. */
+export function Face({ wallet, src, initials, className = "passport-face" }: { wallet?: string; src?: string; initials?: string; className?: string }) {
+  const own = usePhotoOf(src ? undefined : wallet);
+  const photo = src ?? own;
   const username = useUsernameOf(initials ? undefined : wallet);
   return (
     <span className={className} aria-hidden="true">

@@ -11,6 +11,10 @@ export type EventCardData = {
   href?: string;
   title: string;
   hostName: string;
+  /** The host's wallet, whose photo is the host's face. */
+  organizer?: string;
+  /** Examples only: a bundled host logo. */
+  hostLogo?: "monkedao" | "solana" | "superteam-sg" | "superteam-ca";
   /** "91% of guests show up", when the host has a record. */
   hostRecord?: string;
   when: string;
@@ -50,6 +54,7 @@ export function cardOfEvent(address: Address, event: EventAccount, now: bigint):
     href: `/e/${address}`,
     title: terms.title,
     hostName: details.hostName,
+    organizer: event.organizer,
     when: `${day} · ${time}`,
     place: details.venue,
     city: details.city,
@@ -79,6 +84,7 @@ const EXAMPLES: Example[] = [
   {
     title: "Solana Breakpoint",
     hostName: "Solana Foundation",
+    hostLogo: "solana",
     dates: { when: "15–17 Nov", start: new Date(2026, 10, 15) },
     place: "Olympia London",
     city: "London",
@@ -128,6 +134,7 @@ const EXAMPLES: Example[] = [
   {
     title: "MonkeDAO members night",
     hostName: "MonkeDAO",
+    hostLogo: "monkedao",
     inDays: 9,
     time: "19:00",
     place: "Ari",
@@ -136,6 +143,31 @@ const EXAMPLES: Example[] = [
     going: "45 of 60 going",
     approval: true,
     point: { latitude: 13.7797, longitude: 100.5446 },
+  },
+  {
+    title: "Solana Summit Singapore",
+    hostName: "Superteam Singapore",
+    hostLogo: "superteam-sg",
+    inDays: 21,
+    time: "09:30",
+    place: "Marina Bay",
+    city: "Singapore",
+    stake: "$10",
+    going: "212 of 300 going",
+    point: { latitude: 1.2834, longitude: 103.8607 },
+  },
+  {
+    title: "Solana Summit Canada",
+    hostName: "Superteam Canada",
+    hostLogo: "superteam-ca",
+    inDays: 28,
+    time: "10:00",
+    place: "King West",
+    city: "Toronto",
+    ticket: "$20",
+    stake: "$5",
+    going: "140 of 200 going",
+    point: { latitude: 43.6447, longitude: -79.4006 },
   },
   {
     title: "Seeker devs breakfast",
@@ -160,7 +192,7 @@ export function exampleEvents(today: Date): EventCardData[] {
     const day = start.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
     return {
       ...example,
-      key: `example-${example.city}`,
+      key: `example-${example.title}`,
       when: dates?.when ?? `${day} · ${time}`,
       stampDate: stampDateOf(start),
       seed: example.title,

@@ -28,7 +28,7 @@ import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { TypeLabels } from '@/components/TypeLabels'
 import { CityStamp } from '@/components/CityStamp'
-import { COVERS } from '@/components/EventCard'
+import { COVERS, initialsOf } from '@/components/EventCard'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
 import { requestTestFunds } from '@/lib/api'
 import { reader, tokenLabel } from '@/lib/balances'
@@ -178,7 +178,6 @@ function Detail({ icon, title, children }: { icon: ReactNode; title: string; chi
 function HostRow({ event }: { event: EventAccount }) {
   const host = useHostPage(event.organizer)
   const people = usePeople([event.organizer])
-  const initials = event.details.hostName.trim().split(/\s+/).slice(0, 2).map((word) => [...word][0]?.toUpperCase() ?? '').join('') || '?'
   let record = ''
   if (host.data) {
     const { profile, record: past } = host.data
@@ -191,7 +190,7 @@ function HostRow({ event }: { event: EventAccount }) {
   }
   return (
     <View style={{ borderRadius: radius.card, backgroundColor: colors.ink, padding: 16 }} className="flex-row items-center gap-3">
-      <Avatar initials={initials} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
+      <Avatar initials={initialsOf(event.details.hostName)} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
         <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
         <Text style={{ ...type.small, color: colors.sky }}>{record || ' '}</Text>
