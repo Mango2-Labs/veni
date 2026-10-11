@@ -30,9 +30,9 @@ export function oneWordConstantNames() {
   ]);
 }
 
-// The program creates StampCount by hand, so Anchor leaves it out of the IDL.
-// This adds it back, so the client can read it. Its address comes from the
-// stampCount PDA that Codama finds in close_guest's accounts.
+// The program creates StampCount by hand, so Anchor's IDL describes it only as
+// claim_rewards reads it. This puts in the full account, so the client can read
+// it by address. Its address comes from the stampCount PDA in close_guest's accounts.
 export function stampCountAccount() {
   const discriminator = createHash("sha256").update("account:StampCount").digest().subarray(0, 8);
   return rootNodeVisitor((root) => ({
@@ -40,7 +40,7 @@ export function stampCountAccount() {
     program: {
       ...root.program,
       accounts: [
-        ...root.program.accounts,
+        ...root.program.accounts.filter((account) => account.name !== "stampCount"),
         accountNode({
           name: "stampCount",
           docs: ["How many events a wallet came to. Never closed."],

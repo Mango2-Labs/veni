@@ -8,4 +8,6 @@
 
 export * from "./event";
 export * from "./guest";
+export * from "./rewards";
+export * from "./seekerClaim";
 export * from "./stampCount";

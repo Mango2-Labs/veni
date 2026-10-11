@@ -66,4 +66,16 @@ pub mod veni {
     pub fn close_event(ctx: Context<CloseEvent>) -> Result<()> {
         instructions::close_event::handle_close_event(ctx)
     }
+
+    pub fn init_rewards(ctx: Context<InitRewards>, settings: RewardSettings) -> Result<()> {
+        instructions::init_rewards::handle_init_rewards(ctx, settings)
+    }
+
+    pub fn update_rewards(ctx: Context<UpdateRewards>, settings: RewardSettings) -> Result<()> {
+        instructions::update_rewards::handle_update_rewards(ctx, settings)
+    }
+
+    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
+        instructions::claim_rewards::handle_claim_rewards(ctx)
+    }
 }

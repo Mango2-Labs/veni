@@ -108,6 +108,20 @@ export const VENI_ERROR__TICKET_PRICE_TOO_LARGE = 0x179c; // 6044
 export const VENI_ERROR__HOST_TOKEN_ACCOUNT_MISSING = 0x179d; // 6045
 /** TicketsOnHold: The host's ticket money is held until 24 hours after check-in closes */
 export const VENI_ERROR__TICKETS_ON_HOLD = 0x179e; // 6046
+/** NotUpgradeAuthority: Only the program's upgrade authority can set up rewards */
+export const VENI_ERROR__NOT_UPGRADE_AUTHORITY = 0x179f; // 6047
+/** NotRewardsAdmin: Only the rewards admin can change the rewards */
+export const VENI_ERROR__NOT_REWARDS_ADMIN = 0x17a0; // 6048
+/** MilestonesOutOfOrder: Each milestone needs more stamps than the one before, starting above zero */
+export const VENI_ERROR__MILESTONES_OUT_OF_ORDER = 0x17a1; // 6049
+/** RewardsPaused: Rewards are paused */
+export const VENI_ERROR__REWARDS_PAUSED = 0x17a2; // 6050
+/** NotASeeker: That isn't a Seeker Genesis Token */
+export const VENI_ERROR__NOT_A_SEEKER = 0x17a3; // 6051
+/** SeekerTokenNotHeld: This wallet doesn't hold that Seeker Genesis Token */
+export const VENI_ERROR__SEEKER_TOKEN_NOT_HELD = 0x17a4; // 6052
+/** NothingToClaim: Nothing to claim yet */
+export const VENI_ERROR__NOTHING_TO_CLAIM = 0x17a5; // 6053
 
 export type VeniError =
   | typeof VENI_ERROR__ALREADY_APPROVED
@@ -134,18 +148,25 @@ export type VeniError =
   | typeof VENI_ERROR__HOST_TOKEN_ACCOUNT_MISSING
   | typeof VENI_ERROR__LOCATION_OFF_THE_MAP
   | typeof VENI_ERROR__LUMA_SLUG_TOO_LONG
+  | typeof VENI_ERROR__MILESTONES_OUT_OF_ORDER
   | typeof VENI_ERROR__MISSING_CHECK_IN_SIGNATURE
   | typeof VENI_ERROR__NOBODY_RSVPED
   | typeof VENI_ERROR__NO_CAPACITY
   | typeof VENI_ERROR__NOT_APPROVED
+  | typeof VENI_ERROR__NOT_A_SEEKER
+  | typeof VENI_ERROR__NOTHING_TO_CLAIM
   | typeof VENI_ERROR__NOT_ORGANIZER
   | typeof VENI_ERROR__NOT_ORGANIZER_OR_APPLICANT
+  | typeof VENI_ERROR__NOT_REWARDS_ADMIN
   | typeof VENI_ERROR__NOT_SETTLED
+  | typeof VENI_ERROR__NOT_UPGRADE_AUTHORITY
   | typeof VENI_ERROR__ORGANIZER_CANNOT_RSVP
+  | typeof VENI_ERROR__REWARDS_PAUSED
   | typeof VENI_ERROR__RSVP_CLOSED
   | typeof VENI_ERROR__RSVP_ENDS_AFTER_CHECK_IN
   | typeof VENI_ERROR__RSVP_ENDS_IN_PAST
   | typeof VENI_ERROR__RSVP_STILL_OPEN
+  | typeof VENI_ERROR__SEEKER_TOKEN_NOT_HELD
   | typeof VENI_ERROR__STAKE_IS_ZERO
   | typeof VENI_ERROR__STAKE_MINT_NOT_ALLOWED
   | typeof VENI_ERROR__STAKE_TOO_LARGE
@@ -185,18 +206,25 @@ if (process.env["NODE_ENV"] !== "production") {
     [VENI_ERROR__HOST_TOKEN_ACCOUNT_MISSING]: `The host needs a token account for this token to be paid for tickets`,
     [VENI_ERROR__LOCATION_OFF_THE_MAP]: `The location isn't on the map: latitude must be within 90° and longitude within 180°`,
     [VENI_ERROR__LUMA_SLUG_TOO_LONG]: `The Luma link is longer than 64 bytes`,
+    [VENI_ERROR__MILESTONES_OUT_OF_ORDER]: `Each milestone needs more stamps than the one before, starting above zero`,
     [VENI_ERROR__MISSING_CHECK_IN_SIGNATURE]: `A check-in needs the organizer's signature in the instruction right before it`,
     [VENI_ERROR__NOBODY_RSVPED]: `Nobody RSVPed, so there's nothing to settle. Close the event instead`,
     [VENI_ERROR__NO_CAPACITY]: `An event needs room for at least one guest`,
     [VENI_ERROR__NOT_APPROVED]: `The host hasn't approved this guest`,
+    [VENI_ERROR__NOT_A_SEEKER]: `That isn't a Seeker Genesis Token`,
+    [VENI_ERROR__NOTHING_TO_CLAIM]: `Nothing to claim yet`,
     [VENI_ERROR__NOT_ORGANIZER]: `Only the organizer can cancel the event`,
     [VENI_ERROR__NOT_ORGANIZER_OR_APPLICANT]: `Only the organizer or the applicant can take back an application`,
+    [VENI_ERROR__NOT_REWARDS_ADMIN]: `Only the rewards admin can change the rewards`,
     [VENI_ERROR__NOT_SETTLED]: `The event isn't settled or cancelled yet`,
+    [VENI_ERROR__NOT_UPGRADE_AUTHORITY]: `Only the program's upgrade authority can set up rewards`,
     [VENI_ERROR__ORGANIZER_CANNOT_RSVP]: `The organizer hosts the event, so they don't RSVP to it`,
+    [VENI_ERROR__REWARDS_PAUSED]: `Rewards are paused`,
     [VENI_ERROR__RSVP_CLOSED]: `RSVPs have closed`,
     [VENI_ERROR__RSVP_ENDS_AFTER_CHECK_IN]: `RSVPs must close before check-in does`,
     [VENI_ERROR__RSVP_ENDS_IN_PAST]: `RSVPs must close in the future`,
     [VENI_ERROR__RSVP_STILL_OPEN]: `Only the organizer can close an event while RSVPs are open`,
+    [VENI_ERROR__SEEKER_TOKEN_NOT_HELD]: `This wallet doesn't hold that Seeker Genesis Token`,
     [VENI_ERROR__STAKE_IS_ZERO]: `The stake must be more than zero`,
     [VENI_ERROR__STAKE_MINT_NOT_ALLOWED]: `This token can't be staked`,
     [VENI_ERROR__STAKE_TOO_LARGE]: `The stake is over the 100-token limit`,

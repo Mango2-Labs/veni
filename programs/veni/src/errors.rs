@@ -96,4 +96,18 @@ pub enum VeniError {
     HostTokenAccountMissing,
     #[msg("The host's ticket money is held until 24 hours after check-in closes")]
     TicketsOnHold,
+    #[msg("Only the program's upgrade authority can set up rewards")]
+    NotUpgradeAuthority,
+    #[msg("Only the rewards admin can change the rewards")]
+    NotRewardsAdmin,
+    #[msg("Each milestone needs more stamps than the one before, starting above zero")]
+    MilestonesOutOfOrder,
+    #[msg("Rewards are paused")]
+    RewardsPaused,
+    #[msg("That isn't a Seeker Genesis Token")]
+    NotASeeker,
+    #[msg("This wallet doesn't hold that Seeker Genesis Token")]
+    SeekerTokenNotHeld,
+    #[msg("Nothing to claim yet")]
+    NothingToClaim,
 }

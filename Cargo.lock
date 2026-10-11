@@ -2280,6 +2280,7 @@ dependencies = [
  "anchor-spl",
  "solana-instructions-sysvar",
  "solana-sdk-ids",
+ "spl-token-group-interface",
 ]
 
 [[package]]

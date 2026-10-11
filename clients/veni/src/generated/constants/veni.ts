@@ -41,6 +41,14 @@ export const MAX_TICKET_PRICE_TOKENS: bigint = 1000n;
 
 export const MIN_DURATION_SECONDS: bigint = 60n;
 
+export const REWARDS_SEED: ReadonlyUint8Array = new Uint8Array([
+  114, 101, 119, 97, 114, 100, 115,
+]);
+
+export const SEEKER_CLAIM_SEED: ReadonlyUint8Array = new Uint8Array([
+  115, 101, 101, 107, 101, 114, 95, 99, 108, 97, 105, 109,
+]);
+
 export const STAMP_COUNT_SEED: ReadonlyUint8Array = new Uint8Array([
   115, 116, 97, 109, 112, 95, 99, 111, 117, 110, 116,
 ]);
