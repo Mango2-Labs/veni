@@ -10,6 +10,7 @@ import { cardOfEvent, chainTime, describeError, fetchEventAddressesOf } from "@v
 import { AppHeader } from "@/components/AppHeader";
 import { EventCard } from "@/components/EventCard";
 import { Face } from "@/components/Face";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { PastEventList } from "@/components/PastEventList";
 import { WalletName } from "@/components/WalletName";
 import { turnoutPercent, useHostPage } from "@/lib/archive-client";
@@ -75,7 +76,10 @@ function Host({ wallet }: { wallet: Address }) {
               Host on Veni since {new Date(profile.registeredAt).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
             </p>
           )}
-          <h1 id="host-name">{name}</h1>
+          <h1 id="host-name">
+            {name}
+            {page.value.isVerified && <VerifiedBadge />}
+          </h1>
           <p className="passport-note">
             <WalletName wallet={wallet} />
           </p>

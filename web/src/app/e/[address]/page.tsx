@@ -25,6 +25,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { DoorScanner } from "@/components/DoorScanner";
 import { CityStamp, coverClassOf, TypeLabels } from "@/components/EventCard";
 import { Face } from "@/components/Face";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";
@@ -37,7 +38,6 @@ import { DESCRIPTION_LIMIT } from "@/lib/event-description";
 import { initialsOf } from "@/lib/host-profile";
 import { coverOf, isEventAccount, isOutdatedEvent, locationOf, lumaLinkOf } from "@/lib/events";
 import type { LumaEvent } from "@/lib/luma";
-import { isVerifiedOrganizer } from "@/lib/organizers";
 import { mapsLink } from "@/lib/places";
 import {
   formatUsd,
@@ -953,7 +953,10 @@ function HostCard({ event }: { event: EventAccount }) {
     <Link className="host-card" href={`/h/${event.organizer}`}>
       <Face wallet={event.organizer} initials={initialsOf(hostName)} />
       <span>
-        <span className="host-card-name">{hostName}</span>
+        <span className="host-card-name">
+          {hostName}
+          {host.kind === "ready" && host.value.isVerified && <VerifiedBadge />}
+        </span>
         <span className="host-card-record">{record || "\u00a0"}</span>
       </span>
     </Link>
@@ -963,7 +966,7 @@ function HostCard({ event }: { event: EventAccount }) {
 /** Before staking with a host nobody knows yet: say so. */
 function HostCaution({ event }: { event: EventAccount }) {
   const host = useHostPage(event.organizer);
-  if (host.kind !== "ready" || host.value.profile || isVerifiedOrganizer(event.organizer)) return null;
+  if (host.kind !== "ready" || host.value.profile || host.value.isVerified) return null;
   return (
     <p className="caution-note">
       <b>New host on Veni.</b> Only stake if you trust them.

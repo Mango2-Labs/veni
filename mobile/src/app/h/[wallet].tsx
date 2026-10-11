@@ -9,6 +9,7 @@ import { shortAddress } from '@/components/AccountMenu'
 import { EventList } from '@/components/EventList'
 import { HostedEventRow } from '@/components/HostedEventRow'
 import { Tabs } from '@/components/Tabs'
+import { VerifiedBadge } from '@/components/VerifiedBadge'
 import { useHostPage } from '@/lib/event'
 import { useEventCards } from '@/lib/events'
 import { photoUrl, usePeople } from '@/lib/people'
@@ -67,9 +68,12 @@ function Host({ wallet }: { wallet: Address }) {
         <Avatar username={name} photo={photoUrl(wallet, people.data?.photos?.[wallet])} size={76} />
       </View>
       <View style={{ gap: 4 }}>
-        <Text accessibilityRole="header" style={type.title}>
-          {name}
-        </Text>
+        <View className="flex-row items-center" style={{ gap: 8 }}>
+          <Text accessibilityRole="header" style={type.title}>
+            {name}
+          </Text>
+          {page.data?.isVerified ? <VerifiedBadge size={24} /> : null}
+        </View>
         {since ? <Text style={type.small}>Host on Veni since {since}</Text> : null}
         {profile?.lumaCalendar ? (
           <Text accessibilityRole="link" onPress={() => Linking.openURL(`https://luma.com/${profile.lumaCalendar}`)} style={{ ...type.label, textDecorationLine: 'underline' }}>
