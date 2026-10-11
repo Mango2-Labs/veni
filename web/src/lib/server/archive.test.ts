@@ -5,7 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { generateKeyPairSigner, getUtf8Encoder, none, signBytes, some, type Address, type KeyPairSigner } from "@solana/kit";
 import { TEST_USD_MINT, type Event as EventAccount } from "@veni/client";
 import { hostProfileMessage } from "../host-profile";
-import { pastEventsAttendedBy, pastEventsHostedBy, recordOf, saveEvent } from "./archive";
+import { historyOf, pastEventsAttendedBy, pastEventsHostedBy, recordOf, saveEvent } from "./archive";
 import { createPgliteDatabase, useDatabaseForTests } from "./db";
 import { getHost, registerHost } from "./hosts";
 
@@ -107,6 +107,36 @@ describe("archive", () => {
 
     expect(pastEvents).toHaveLength(2);
     expect(recordOf(pastEvents)).toEqual({ eventCount: 2, guestCount: 10, attendedCount: 8 });
+  });
+});
+
+describe("history", () => {
+  test("shows what each past event paid or cost, and all a guest earned", async () => {
+    await saveEvent(EVENT, eventWith({ guestCount: 3, attendedCount: 2 }), [
+      { wallet: alice, hasAttended: true },
+      { wallet: bob, hasAttended: false },
+    ]);
+    await saveEvent(OTHER_EVENT, eventWith({ isCancelled: true }), [{ wallet: alice, hasAttended: false }]);
+
+    // One $10 no-show, less Veni's 10%, split between two attendees.
+    expect(await historyOf(alice, 0, AFTER)).toMatchObject({
+      events: [
+        { address: EVENT, outcome: "checked-in", result: "4500000" },
+        { address: OTHER_EVENT, outcome: "cancelled", result: "0" },
+      ],
+      earned: "4500000",
+      hasMore: false,
+    });
+    expect(await historyOf(bob, 0, AFTER)).toMatchObject({ events: [{ outcome: "missed", result: "-10000000" }], earned: "0" });
+  });
+
+  test("pages through ten events at a time", async () => {
+    for (let i = 0; i < 11; i++) {
+      await saveEvent((await generateKeyPairSigner()).address, eventWith(), [{ wallet: alice, hasAttended: true }]);
+    }
+
+    expect(await historyOf(alice, 0, AFTER)).toMatchObject({ events: { length: 10 }, hasMore: true });
+    expect(await historyOf(alice, 10, AFTER)).toMatchObject({ events: { length: 1 }, hasMore: false });
   });
 });
 

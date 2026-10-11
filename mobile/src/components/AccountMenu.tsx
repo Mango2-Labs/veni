@@ -26,7 +26,9 @@ export function AccountMenu() {
   const [copied, setCopied] = useState(false)
   if (!account) return null
 
-  function go(href: '/profile' | '/host') {
+  const changeableAt = data?.changeableAt ? new Date(data.changeableAt).getTime() : 0
+
+  function go(href: '/profile' | '/host' | '/username') {
     setOpen(false)
     router.navigate(href)
   }
@@ -34,6 +36,7 @@ export function AccountMenu() {
   const items: { label: string; onPress: () => void }[] = [
     { label: 'View profile', onPress: () => go('/profile') },
     { label: 'Host an event', onPress: () => go('/host') },
+    ...(changeableAt <= Date.now() ? [{ label: 'Change username', onPress: () => go('/username') }] : []),
     {
       label: 'Sign out',
       onPress: async () => {
