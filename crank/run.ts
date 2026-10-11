@@ -4,7 +4,7 @@
 //   bun run crank:loop     a run every CRANK_EVERY_MINUTES (5)
 //
 // RPC_URL        the devnet RPC from the root .env; the public RPC when unset or failing
-// CRANK_KEYPAIR  the crank's keypair file; its SOL pays fees
+// CRANK_KEYPAIR  the crank's keypair, or its file; its SOL pays fees
 // ARCHIVE_URL    the app's /api/archive (localhost by default); "off" skips archiving
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -12,15 +12,25 @@ import { createKeyPairSignerFromBytes } from "@solana/kit";
 import { createVeniClient, describeError, PUBLIC_DEVNET_RPC_URL } from "@veni/sdk";
 import { archiveThrough, runCrank, type CrankOptions } from "./crank";
 
-const RPC_URL = process.env.RPC_URL ?? PUBLIC_DEVNET_RPC_URL;
-const CRANK_KEYPAIR = process.env.CRANK_KEYPAIR ?? `${homedir()}/.config/solana/veni-cranker-devnet.json`;
+const RPC_URL = process.env.RPC_URL || PUBLIC_DEVNET_RPC_URL;
+const CRANK_KEYPAIR = process.env.CRANK_KEYPAIR?.trim() || `${homedir()}/.config/solana/veni-cranker-devnet.json`;
 const EVERY_MINUTES = Number(process.env.CRANK_EVERY_MINUTES ?? 5);
 const ARCHIVE_URL = process.env.ARCHIVE_URL ?? "http://localhost:3000/api/archive";
 const options: CrankOptions = ARCHIVE_URL === "off" ? {} : { archive: archiveThrough(ARCHIVE_URL) };
 if (ARCHIVE_URL === "off") console.warn("ARCHIVE_URL=off: events close without being archived, and their history is lost.");
 
-const wallet = await createKeyPairSignerFromBytes(new Uint8Array(JSON.parse(readFileSync(CRANK_KEYPAIR, "utf8"))));
+const wallet = await crankSigner();
 const client = createVeniClient(wallet, RPC_URL);
+
+/** Never puts the setting in its error: it can be the key itself. */
+async function crankSigner() {
+  try {
+    const keypair = CRANK_KEYPAIR.startsWith("[") ? CRANK_KEYPAIR : readFileSync(CRANK_KEYPAIR, "utf8");
+    return await createKeyPairSignerFromBytes(new Uint8Array(JSON.parse(keypair)));
+  } catch {
+    throw new Error("CRANK_KEYPAIR can't be read: it should hold the crank's keypair or name its keypair file.");
+  }
+}
 
 /** One run; false if anything failed. A failed run is logged and the next one retries. */
 async function runOnce() {
