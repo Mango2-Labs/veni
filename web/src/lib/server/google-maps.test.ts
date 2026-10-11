@@ -40,7 +40,11 @@ describe("Google place search", () => {
   test("never passes on Google's error text, which can quote the key", async () => {
     process.env.GOOGLE_MAPS_API_KEY = "secret-looking-key";
     answerWith(new Response("API key secret-looking-key isn't allowed here", { status: 403 }));
-    const error = await searchGooglePlaces("LX Factory").catch((caught: Error) => caught);
-    expect(error.message).not.toContain("secret-looking-key");
+    const error = await searchGooglePlaces("LX Factory").then(
+      () => undefined,
+      (caught: Error) => caught,
+    );
+    expect(error).toBeInstanceOf(Error);
+    expect(error?.message).not.toContain("secret-looking-key");
   });
 });
