@@ -77,6 +77,14 @@ describe("archive", () => {
     expect(await pastEventsAttendedBy(bob, AFTER)).toEqual([]);
   });
 
+  test("lists an event that settled early, when everyone checked in before check-in closed", async () => {
+    await saveEvent(EVENT, eventWith({ guestCount: 1, attendedCount: 1, isSettled: true }), [{ wallet: alice, hasAttended: true }]);
+
+    const before = Number(ENDS_AT) - 1;
+    expect(await pastEventsAttendedBy(alice, before)).toHaveLength(1);
+    expect(await pastEventsHostedBy(organizer.address, before)).toHaveLength(1);
+  });
+
   test("never goes backwards when an older read of the chain is saved again", async () => {
     await saveEvent(EVENT, eventWith({ attendedCount: 2, isSettled: true }), [{ wallet: alice, hasAttended: true }]);
     await saveEvent(EVENT, eventWith({ attendedCount: 1, isSettled: false }), [{ wallet: alice, hasAttended: false }]);

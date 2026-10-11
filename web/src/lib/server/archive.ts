@@ -117,19 +117,19 @@ export async function pastEventsAttendedBy(wallet: Address, nowSeconds = Math.fl
   const db = await getDatabase();
   const rows = await db.query<EventRow>(
     `SELECT ${EVENT_COLUMNS} FROM archived_guests g JOIN archived_events e ON e.address = g.event_address
-     WHERE g.wallet = $1 AND g.has_attended AND e.check_in_ends_at <= $2
+     WHERE g.wallet = $1 AND g.has_attended AND (e.check_in_ends_at <= $2 OR e.is_settled OR e.is_cancelled)
      ORDER BY e.starts_at DESC LIMIT 100`,
     [wallet, nowSeconds],
   );
   return rows.map(toPastEvent);
 }
 
-/** A host's events whose check-in has closed, newest first. */
+/** A host's events that are over (check-in closed, settled or cancelled), newest first. */
 export async function pastEventsHostedBy(organizer: Address, nowSeconds = Math.floor(Date.now() / 1000)) {
   const db = await getDatabase();
   const rows = await db.query<EventRow>(
     `SELECT ${EVENT_COLUMNS} FROM archived_events e
-     WHERE e.organizer = $1 AND e.check_in_ends_at <= $2
+     WHERE e.organizer = $1 AND (e.check_in_ends_at <= $2 OR e.is_settled OR e.is_cancelled)
      ORDER BY e.starts_at DESC LIMIT 100`,
     [organizer, nowSeconds],
   );
