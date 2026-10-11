@@ -169,18 +169,6 @@ const EXAMPLES: Example[] = [
     going: "140 of 200 going",
     point: { latitude: 43.6447, longitude: -79.4006 },
   },
-  {
-    title: "Seeker devs breakfast",
-    hostName: "Mobile Builders SG",
-    hostRecord: "89% of guests show up",
-    inDays: 16,
-    time: "09:00",
-    place: "Tanjong Pagar",
-    city: "Singapore",
-    stake: "$5",
-    going: "24 of 30 going",
-    point: { latitude: 1.2764, longitude: 103.8458 },
-  },
 ];
 
 const DAY_MS = 86_400_000;
