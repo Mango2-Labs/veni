@@ -1,7 +1,6 @@
 import { Text, View } from 'react-native'
 import { fonts } from '@/lib/theme'
 
-/** A dashed ring with the city and date, turned like a stamp. */
 export function CityStamp({ city, date, color, background }: { city: string; date: string; color: string; background?: string }) {
   const long = city.length > 7
   return (

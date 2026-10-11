@@ -15,7 +15,6 @@ export function shortAddress(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`
 }
 
-/** The avatar in the header, and its menu: View profile, Host an event, Copy address, Sign out. */
 export function AccountMenu() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -100,7 +99,7 @@ export function AccountMenu() {
   )
 }
 
-/** The dollars this wallet can stake, and a warning only when SOL for fees runs low. */
+// SOL shows only when it runs too low for fees.
 function MenuBalance({ balances, failed }: { balances: ReturnType<typeof useWalletBalances>['data']; failed: boolean }) {
   if (!balances) {
     return (

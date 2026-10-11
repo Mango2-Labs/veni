@@ -132,7 +132,6 @@ function fold(text: string) {
   return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-/** Every word appears in the name, host, city or venue. */
 function matches(card: EventCardData, words: string[]) {
   if (words.length === 0) return true
   const haystack = fold([card.title, card.hostName, card.city, card.place].join(' '))

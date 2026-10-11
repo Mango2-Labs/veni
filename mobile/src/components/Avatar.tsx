@@ -2,7 +2,6 @@ import { Text, View } from 'react-native'
 import { usernameInitials } from '@veni/sdk'
 import { colors, fonts } from '@/lib/theme'
 
-/** A person's face until people have photos: their initials on stamp orange. */
 export function Avatar({ username, size = 40 }: { username: string | undefined; size?: number }) {
   return (
     <View

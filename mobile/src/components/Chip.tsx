@@ -3,7 +3,6 @@ import { Text, View } from 'react-native'
 import { Check, ShieldCheck, Ticket } from 'lucide-react-native'
 import { colors, fonts, radius } from '@/lib/theme'
 
-/** State and type chips, as on the website. */
 const TONES: Record<string, { background: string; color: string; border?: string }> = {
   'stage-open': { background: colors.sky, color: colors.ink },
   'stage-running': { background: colors.tealSoft, color: colors.tealText },
@@ -30,7 +29,6 @@ export function Chip({ label, tone, icon }: { label: string; tone: string; icon?
   )
 }
 
-/** Free or paid, and whether the host approves guests. */
 export function TypeChips({ ticket, approval }: { ticket?: string; approval?: boolean }) {
   return (
     <>

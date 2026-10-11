@@ -11,7 +11,6 @@ export async function hasDismissedStakeNotice() {
   return (await AsyncStorage.getItem(DISMISSED_KEY).catch(() => null)) === '1'
 }
 
-/** Before a stake, until the guest ticks "Don't show this again": the stake comes back only by showing up. */
 export function StakeNotice({
   open,
   stake,

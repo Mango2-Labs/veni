@@ -11,9 +11,8 @@ const shared = {
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname)
 
-// The app uses Veni's program client and SDK straight from the repo, like the web app and
-// the crank, so all three build the same transactions. Their own imports resolve from this
-// app's node_modules, so there's one copy of Kit.
+// The SDK and program client come straight from the repo, like on the web, and their imports
+// resolve from this app's node_modules, so there's one copy of Kit.
 config.watchFolders = Object.values(shared)
 config.resolver.extraNodeModules = shared
 const sharedDirs = Object.values(shared).map((dir) => dir + path.sep)

@@ -1,4 +1,3 @@
-// Calls to Veni's API on the website: usernames, test funds, the archive.
 import type { Address } from '@solana/kit'
 import type { UsernameInput } from '@veni/sdk'
 import { VENI_URL } from './config'
@@ -19,7 +18,7 @@ function post<T>(path: string, body: unknown) {
   return json<T>(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-/** The wallet's username, and when it may next change. Empty when it has none. */
+/** Empty when the wallet has no username. */
 export type MyUsername = { username?: string; changeableAt?: string }
 
 export function fetchMyUsername(wallet: Address) {
@@ -38,13 +37,6 @@ export async function saveUsername(input: UsernameInput & { signature: string })
   return username
 }
 
-/** Usernames for up to 100 wallets; wallets without one are left out. */
-export async function fetchUsernames(wallets: Address[]) {
-  const { usernames } = await json<{ usernames: Record<string, string> }>(`/api/usernames?wallets=${wallets.join(',')}`)
-  return usernames
-}
-
-/** 50 Test USD, plus 0.05 SOL if the wallet is low. */
 export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
@@ -62,7 +54,6 @@ export async function fetchDescription(event: Address) {
   return (await json<{ description: string | null }>(`/api/events/${event}/description`)).description
 }
 
-/** The description on the event's Luma page, read through Veni's server. */
 export async function fetchLumaDescription(url: string) {
   return (await post<{ event?: { description: string } }>('/api/luma', { url })).event?.description
 }

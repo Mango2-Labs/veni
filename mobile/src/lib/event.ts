@@ -7,7 +7,7 @@ import { reader } from './balances'
 
 export const eventKey = (address: Address) => ['event', address] as const
 
-/** The event, its guests and the chain's clock, read every 5 seconds. Null once it's closed. */
+/** Null once the event is closed. */
 export function useEventSnapshot(address: Address) {
   return useQuery({
     queryKey: eventKey(address),
@@ -25,7 +25,6 @@ export function useHostPage(organizer: Address | undefined) {
   return useQuery({ queryKey: ['host', organizer], queryFn: () => fetchHostPage(organizer!), enabled: Boolean(organizer) })
 }
 
-/** The host's own description, else the one on Luma. */
 export function useDescription(address: Address, event: Parameters<typeof lumaLinkOf>[0] | undefined) {
   const luma = event ? lumaLinkOf(event) : undefined
   return useQuery({

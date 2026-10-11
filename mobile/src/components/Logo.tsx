@@ -1,7 +1,6 @@
 import Svg, { Circle, Path } from 'react-native-svg'
 import { colors } from '@/lib/theme'
 
-/** Two v's closing in on a dot: everyone heading to the same spot. */
 export function LogoMark({ size = 40, color = colors.ink }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="12 9 40 45" accessibilityLabel="Veni">

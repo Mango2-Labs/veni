@@ -9,7 +9,6 @@ type Props = {
   disabled?: boolean
 }
 
-/** Primary: stamp orange with navy text, one per screen. Secondary: white with a navy line. */
 export function Button({ label, onPress, variant = 'primary', busy = false, disabled = false }: Props) {
   const primary = variant === 'primary'
   return (

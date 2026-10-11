@@ -1,4 +1,4 @@
-// Veni's brand (brand.md), for styles Uniwind classes can't set, like fonts.
+// Veni's brand (brand.md). Fonts and radii are set as styles: Uniwind classes don't apply them reliably.
 export const colors = {
   ink: '#14223F',
   ink2: '#46566F',
@@ -30,7 +30,6 @@ export const fonts = {
   heavy: 'PlusJakartaSans_800ExtraBold',
 } as const
 
-/** Text styles, from brand.md: Unbounded for headlines, Plus Jakarta Sans for text. */
 export const type = {
   hero: { fontFamily: fonts.display, fontSize: 34, lineHeight: 40, letterSpacing: -1.2, color: colors.ink },
   title: { fontFamily: fonts.display, fontSize: 24, lineHeight: 30, letterSpacing: -0.7, color: colors.ink },
@@ -41,5 +40,4 @@ export const type = {
   label: { fontFamily: fonts.bold, fontSize: 14, lineHeight: 20, color: colors.ink },
 } as const
 
-/** Corner radii from brand.md, set as styles: buttons and fields, cards, the profile cover, chips. */
 export const radius = { button: 14, card: 22, cover: 26, chip: 9 } as const

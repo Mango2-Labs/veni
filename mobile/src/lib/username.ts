@@ -4,7 +4,6 @@ import { useWallet } from './wallet'
 
 export const myUsernameKey = (wallet: string | undefined) => ['username', wallet] as const
 
-/** The connected wallet's username, from Veni's API. */
 export function useMyUsername() {
   const { account } = useWallet()
   const wallet = account?.address

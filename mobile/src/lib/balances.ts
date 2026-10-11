@@ -9,7 +9,6 @@ export const reader = createVeniReader(RPC_URL)
 
 export const balancesKey = (wallet: string | undefined) => ['balances', wallet] as const
 
-/** The connected wallet's dollars and SOL. */
 export function useWalletBalances() {
   const { account } = useWallet()
   const wallet = account?.address

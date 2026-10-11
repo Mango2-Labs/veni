@@ -5,7 +5,6 @@ import { reader } from './balances'
 
 const DAY_SECONDS = 86_400n
 
-/** Live devnet events, newest first, with the examples after them. Refreshes every 15 seconds. */
 export function useEventCards() {
   return useQuery({
     queryKey: ['events'],
@@ -16,7 +15,7 @@ export function useEventCards() {
         .flatMap((account) => (account.exists ? [{ address: account.address, event: account.data }] : []))
         .sort((a, b) => Number(b.event.terms.rsvpEndsAt - a.event.terms.rsvpEndsAt))
         .map(({ address, event }) => cardOfEvent(address, event, now))
-      // Dated by the day, so the examples don't move every time the chain's clock ticks.
+      // Dated by the day, so the examples don't shift as the chain's clock ticks.
       const today = new Date(Number((now / DAY_SECONDS) * DAY_SECONDS) * 1000)
       return [...live, ...exampleEvents(today)]
     },

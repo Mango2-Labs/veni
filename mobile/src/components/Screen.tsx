@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { AccountMenu } from './AccountMenu'
 import { colors, type } from '@/lib/theme'
 
-/** A tab's page: its title and the account menu, then scrolling content. */
 export function TabScreen({
   title,
   children,
@@ -14,9 +13,7 @@ export function TabScreen({
 }: {
   title: string
   children: ReactNode
-  /** A button beside the account menu, like search. */
   action?: ReactNode
-  /** Pull to refresh, when the page can reload. */
   refreshing?: boolean
   onRefresh?: () => void
 }) {

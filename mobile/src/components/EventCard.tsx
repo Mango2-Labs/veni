@@ -4,7 +4,6 @@ import { Chip, TypeChips } from './Chip'
 import { CityStamp } from './CityStamp'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
-/** The six cover colors for events without a poster, as on the website. */
 export const COVERS = [
   { background: colors.ink, color: colors.paper },
   { background: colors.orange, color: colors.ink },
@@ -14,7 +13,6 @@ export const COVERS = [
   { background: colors.orangeSoft, color: colors.orangeInk },
 ]
 
-/** An event as a card: cover with a city stamp, then host, when and where, state, and the stake. */
 export function EventCard({ event, onPress }: { event: EventCardData; onPress?: () => void }) {
   const cover = COVERS[coverIndexOf(event.seed)]
   const stake = event.ticket ? `${event.ticket} + ${event.stake} stake` : `${event.stake} stake`
