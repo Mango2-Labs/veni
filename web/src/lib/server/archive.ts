@@ -141,7 +141,7 @@ export async function pastEventsHostedBy(organizer: Address, nowSeconds = Math.f
 
 export const HISTORY_PAGE_SIZE = 10;
 
-export type HistoryEvent = Pick<PastEvent, "address" | "title" | "hostName" | "city" | "startsAt"> & {
+export type HistoryEvent = Pick<PastEvent, "address" | "title" | "hostName" | "city" | "venue" | "cover" | "startsAt"> & {
   outcome: "checked-in" | "missed" | "cancelled";
   /** What the guest made (+) or lost (-) beyond getting their stake back, in base units. */
   result: string;
@@ -162,13 +162,15 @@ export async function historyOf(wallet: Address, offset = 0, nowSeconds = Math.f
     title: string;
     host_name: string;
     city: string;
+    venue: string;
+    cover: string;
     starts_at: string | number | bigint;
     has_attended: boolean;
     is_cancelled: boolean;
     result: string | number;
     earned: string | number;
   }>(
-    `SELECT e.address, e.title, e.host_name, e.city, e.starts_at, g.has_attended, e.is_cancelled,
+    `SELECT e.address, e.title, e.host_name, e.city, e.venue, e.cover, e.starts_at, g.has_attended, e.is_cancelled,
             ${RESULT} AS result, sum(GREATEST(${RESULT}, 0)) OVER () AS earned
      FROM archived_guests g JOIN archived_events e ON e.address = g.event_address
      WHERE g.wallet = $1 AND ${IS_PAST}
@@ -180,6 +182,8 @@ export async function historyOf(wallet: Address, offset = 0, nowSeconds = Math.f
     title: row.title,
     hostName: row.host_name,
     city: row.city,
+    venue: row.venue,
+    cover: row.cover,
     startsAt: Number(row.starts_at),
     outcome: row.is_cancelled ? "cancelled" : row.has_attended ? "checked-in" : "missed",
     result: String(row.result),

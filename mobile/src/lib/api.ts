@@ -53,6 +53,9 @@ export type HistoryEvent = {
   title: string
   hostName: string
   city: string
+  // Newer fields: the live site sends them once this ships.
+  venue?: string
+  cover?: string
   startsAt: number
   outcome: 'checked-in' | 'missed' | 'cancelled'
   result: string
