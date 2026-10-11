@@ -944,7 +944,7 @@ function HostCard({ event }: { event: EventAccount }) {
     const { profile, record: past } = host.value;
     const turnout = turnoutPercent(past.attendedCount, past.guestCount);
     record = !profile
-      ? "Not registered on Veni yet"
+      ? ""
       : past.eventCount === 0
         ? "Registered host · first event on Veni"
         : `${past.eventCount} ${past.eventCount === 1 ? "event" : "events"} hosted${turnout ? ` · ${turnout} of guests show up` : ""}`;

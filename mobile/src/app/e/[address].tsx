@@ -191,7 +191,7 @@ function HostRow({ event }: { event: EventAccount }) {
     const { profile, record: past } = host.data
     const turnout = past.guestCount > 0 ? ` · ${Math.round((past.attendedCount / past.guestCount) * 100)}% of guests show up` : ''
     record = !profile
-      ? 'Not registered on Veni yet'
+      ? ''
       : past.eventCount === 0
         ? 'Registered host · first event on Veni'
         : `${past.eventCount} ${past.eventCount === 1 ? 'event' : 'events'} hosted${turnout}`
@@ -207,7 +207,7 @@ function HostRow({ event }: { event: EventAccount }) {
       <Avatar initials={initialsOf(event.details.hostName)} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
         <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
-        <Text style={{ ...type.small, color: colors.sky }}>{record || ' '}</Text>
+        {record ? <Text style={{ ...type.small, color: colors.sky }}>{record}</Text> : null}
       </View>
       <ChevronRight color={colors.sky} size={22} />
     </Pressable>

@@ -70,11 +70,11 @@ function Host({ wallet }: { wallet: Address }) {
       <section className="passport-cover" aria-labelledby="host-name">
         <Face wallet={wallet} initials={initialsOf(name)} />
         <div className="app-head">
-          <p className="passport-kicker">
-            {profile
-              ? `Host on Veni since ${new Date(profile.registeredAt).toLocaleDateString(undefined, { month: "short", year: "numeric" })}`
-              : "Not registered on Veni yet"}
-          </p>
+          {profile && (
+            <p className="passport-kicker">
+              Host on Veni since {new Date(profile.registeredAt).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
+            </p>
+          )}
           <h1 id="host-name">{name}</h1>
           <p className="passport-note">
             <WalletName wallet={wallet} />

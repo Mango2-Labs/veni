@@ -70,7 +70,7 @@ function Host({ wallet }: { wallet: Address }) {
         <Text accessibilityRole="header" style={type.title}>
           {name}
         </Text>
-        <Text style={type.small}>{since ? `Host on Veni since ${since}` : 'Not registered on Veni yet'}</Text>
+        {since ? <Text style={type.small}>Host on Veni since {since}</Text> : null}
         {profile?.lumaCalendar ? (
           <Text accessibilityRole="link" onPress={() => Linking.openURL(`https://luma.com/${profile.lumaCalendar}`)} style={{ ...type.label, textDecorationLine: 'underline' }}>
             luma.com/{profile.lumaCalendar}
