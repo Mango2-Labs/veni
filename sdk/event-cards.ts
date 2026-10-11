@@ -19,6 +19,8 @@ export type EventCardData = {
   /** "91% of guests show up", when the host has a record. */
   hostRecord?: string;
   when: string;
+  /** When it starts, in milliseconds, for sorting. */
+  startsAt: number;
   place: string;
   city: string;
   /** The short date on the city stamp, like "Oct 22". */
@@ -59,6 +61,7 @@ export function cardOfEvent(address: Address, event: EventAccount, now: bigint):
     hostName: details.hostName,
     organizer: event.organizer,
     when: `${day} · ${time}`,
+    startsAt: startsAt.getTime(),
     place: details.venue,
     city: details.city,
     stampDate: stampDateOf(startsAt),
@@ -76,7 +79,7 @@ export function cardOfEvent(address: Address, event: EventAccount, now: bigint):
 }
 
 // Example events for Find events, marked as examples. None are on-chain.
-type Example = Omit<EventCardData, "key" | "when" | "stampDate" | "seed"> & {
+type Example = Omit<EventCardData, "key" | "when" | "startsAt" | "stampDate" | "seed"> & {
   /** Days after today it starts, at `time`. Breakpoint has real dates instead. */
   inDays?: number;
   time?: string;
@@ -177,6 +180,7 @@ export function exampleEvents(today: Date): EventCardData[] {
       ...example,
       key: `example-${example.title}`,
       when: dates?.when ?? `${day} · ${time}`,
+      startsAt: start.getTime(),
       stampDate: stampDateOf(start),
       seed: example.title,
       stage: { label: "Example", className: "stage-example" },
