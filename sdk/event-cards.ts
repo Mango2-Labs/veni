@@ -126,6 +126,18 @@ const EXAMPLES: Example[] = [
     point: { latitude: -23.5614, longitude: -46.6825 },
   },
   {
+    title: "MonkeDAO members night",
+    hostName: "MonkeDAO",
+    inDays: 9,
+    time: "19:00",
+    place: "Ari",
+    city: "Bangkok",
+    stake: "$10",
+    going: "45 of 60 going",
+    approval: true,
+    point: { latitude: 13.7797, longitude: 100.5446 },
+  },
+  {
     title: "Seeker devs breakfast",
     hostName: "Mobile Builders SG",
     hostRecord: "89% of guests show up",
