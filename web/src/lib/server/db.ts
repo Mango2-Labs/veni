@@ -52,6 +52,13 @@ CREATE TABLE IF NOT EXISTS hosts (
   registered_at   timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS skr_claims (
+  seeker_mint     text PRIMARY KEY,
+  wallet          text NOT NULL,
+  claimed         integer NOT NULL,
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS photos (
   wallet          text PRIMARY KEY,
   image           bytea NOT NULL,

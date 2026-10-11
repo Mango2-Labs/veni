@@ -7,4 +7,5 @@ export * from "./event-cards";
 export * from "./events";
 export * from "./payouts";
 export * from "./photos";
+export * from "./rewards";
 export * from "./usernames";
