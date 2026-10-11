@@ -405,13 +405,13 @@ function EventView({
             <div className="field">
               <div className="actions">
                 <Link className="btn btn-primary" href={`/e/${eventAddress}/door`}>
-                  Open the door screen
+                  Show check-in code
                 </Link>
               </div>
               <span className="field-hint">Put it at the entrance for guests to scan.</span>
             </div>
           ) : (
-            <p className="action-note">Open the door screen from the browser you created this event in.</p>
+            <p className="action-note">Show the check-in code from the browser you created this event in.</p>
           ))}
           {isHost && terms.ticketPrice > 0n && (
             <p className="action-note">

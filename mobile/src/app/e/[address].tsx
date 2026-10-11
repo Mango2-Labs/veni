@@ -361,7 +361,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
       {isHost ? (
         <>
           <Text style={type.strong}>You're hosting this event.</Text>
-          {stage === 'open' || stage === 'running' ? <Button label="Open door mode" onPress={() => router.push(`/door/${address}`)} /> : null}
+          {stage === 'open' || stage === 'running' ? <Button label="Show check-in code" onPress={() => router.push(`/door/${address}`)} /> : null}
           {terms.requiresApproval ? <Applications address={address} snapshot={snapshot} busy={busy} run={run} /> : null}
         </>
       ) : null}
@@ -439,7 +439,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
           <Note>
             <Text style={{ fontFamily: fonts.bold, color: colors.ink }}>You're going.</Text> At the door, scan the code to check in.
           </Note>
-          <Button label="Scan the door code" busy={busy === 'checkIn'} disabled={busy !== undefined} onPress={() => setScanning(true)} />
+          <Button label="Scan the check-in code" busy={busy === 'checkIn'} disabled={busy !== undefined} onPress={() => setScanning(true)} />
           <DoorScanner
             open={scanning}
             onCancel={() => setScanning(false)}
@@ -447,9 +447,9 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
               setScanning(false)
               run('checkIn', async () => {
                 const code = decodeCheckInCode(text)
-                if (code.event !== address) throw new Error('That code is for another event. Scan the code at this door.')
+                if (code.event !== address) throw new Error('That code is for another event. Scan the code at this event.')
                 if (code.signer !== terms.doorKey && code.signer !== event.organizer) {
-                  throw new Error("That code wasn't made by this event's door. Scan the code on the door screen.")
+                  throw new Error("That code wasn't made for this event. Scan the check-in code the host shows.")
                 }
                 await client.sendTransaction(await getCheckInWithCodeInstructions(code, client.identity))
               })

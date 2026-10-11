@@ -83,7 +83,7 @@ export default function DoorScreen() {
           <ChevronLeft color={colors.paper} size={26} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={{ ...type.small, fontFamily: fonts.bold, color: colors.skyDk }}>Door</Text>
+          <Text style={{ ...type.small, fontFamily: fonts.bold, color: colors.skyDk }}>Check-in code</Text>
           <Text numberOfLines={1} style={{ ...type.strong, color: colors.paper }}>
             {door?.event.terms.title ?? '…'}
           </Text>
@@ -94,9 +94,9 @@ export default function DoorScreen() {
         {error || !eventAddress ? (
           <Text style={{ ...type.body, color: colors.paper }}>{error ?? "This isn't a Veni event."}</Text>
         ) : !door ? (
-          <Text style={{ ...type.body, color: colors.skyDk }}>Opening the door…</Text>
+          <Text style={{ ...type.body, color: colors.skyDk }}>Getting the code ready…</Text>
         ) : !door.hasDoorKey ? (
-          <Text style={{ ...type.body, color: colors.paper, textAlign: 'center' }}>{"This phone doesn't hold this event's door key. Open the door from the phone that created it."}</Text>
+          <Text style={{ ...type.body, color: colors.paper, textAlign: 'center' }}>{"Only the phone that created this event can show its check-in code."}</Text>
         ) : !door.shown ? (
           <Text style={{ ...type.body, color: colors.paper }}>Check-in has closed.</Text>
         ) : (
