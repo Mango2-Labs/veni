@@ -47,11 +47,19 @@ export async function savePhoto(input: PhotoInput & { image: string; signature: 
   return version
 }
 
-/** An event the wallet checked in to, as Veni's archive kept it once it was over. */
-export type PastEvent = { address: string; title: string; hostName: string; city: string; startsAt: number }
+/** A past event the wallet signed up for. `result` is what it made (+) or lost (-) beyond the stake, in base units. */
+export type HistoryEvent = {
+  address: string
+  title: string
+  hostName: string
+  city: string
+  startsAt: number
+  outcome: 'checked-in' | 'missed' | 'cancelled'
+  result: string
+}
 
-export async function fetchPastEvents(wallet: Address) {
-  return (await json<{ attended: PastEvent[] }>(`/api/me?wallet=${wallet}`)).attended
+export function fetchHistory(wallet: Address, offset: number) {
+  return json<{ events: HistoryEvent[]; earned: string; hasMore: boolean }>(`/api/me/history?wallet=${wallet}&offset=${offset}`)
 }
 
 export function requestTestFunds(wallet: Address) {
