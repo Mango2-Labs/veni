@@ -5,8 +5,8 @@ import * as Clipboard from 'expo-clipboard'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, Copy } from 'lucide-react-native'
 import { Avatar } from './Avatar'
-import { LOW_SOL_LAMPORTS, STAKE_MINTS } from '@veni/sdk'
-import { formatUsd, tokenLabel, useWalletBalances } from '@/lib/balances'
+import { formatUsd, LOW_SOL_LAMPORTS, STAKE_MINTS } from '@veni/sdk'
+import { tokenLabel, useWalletBalances } from '@/lib/balances'
 import { useMyUsername } from '@/lib/username'
 import { useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
@@ -15,7 +15,6 @@ export function shortAddress(address: string) {
   return `${address.slice(0, 4)}…${address.slice(-4)}`
 }
 
-/** The avatar in the header, and its menu: View profile, Host an event, Copy address, Sign out. */
 export function AccountMenu() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -100,7 +99,7 @@ export function AccountMenu() {
   )
 }
 
-/** The dollars this wallet can stake, and a warning only when SOL for fees runs low. */
+// SOL shows only when it runs too low for fees.
 function MenuBalance({ balances, failed }: { balances: ReturnType<typeof useWalletBalances>['data']; failed: boolean }) {
   if (!balances) {
     return (

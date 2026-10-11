@@ -16,13 +16,14 @@ import {
   getCheckInInstructions,
   getCheckInWithCodeInstructions,
   signCheckIn,
+  stampDateOf,
   ticketHoldEndsAt,
   ticketRevenueOf,
   type VeniClient,
 } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { DoorScanner } from "@/components/DoorScanner";
-import { CityStamp, coverClassOf, stampDateOf } from "@/components/EventCard";
+import { CityStamp, coverClassOf, TypeLabels } from "@/components/EventCard";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";
@@ -226,6 +227,7 @@ function EventView({
   }
 
   const startsAtDate = new Date(Number(terms.rsvpEndsAt) * 1000);
+  const ticket = terms.ticketPrice > 0n ? formatUsdShort(terms.ticketPrice) : undefined;
   const startsAt = formatWhen(terms.rsvpEndsAt);
 
   return (
@@ -233,18 +235,20 @@ function EventView({
       <div className="event-hero">
         {cover ? (
           <>
-            <CoverBanner src={cover} title={terms.title} />
+            <CoverBanner src={cover} title={terms.title}>
+              <TypeLabels ticket={ticket} approval={terms.requiresApproval} />
+            </CoverBanner>
             <h1 className="app-title">{terms.title}</h1>
           </>
         ) : (
-          <div className={`event-poster ${coverClassOf(eventAddress)}`}>
+          <div className={`event-poster ${coverClassOf(eventAddress, { paid: terms.ticketPrice > 0n, approval: terms.requiresApproval })}`}>
             <h1>{terms.title}</h1>
+            <TypeLabels ticket={ticket} approval={terms.requiresApproval} />
             <CityStamp city={details.city} date={stampDateOf(startsAtDate)} />
           </div>
         )}
         <span className="event-tags">
           <span className={`stage stage-${stage}`}>{STAGE_LABEL[stage]}</span>
-          {terms.requiresApproval && <span className="stage stage-approval">Host approves guests</span>}
         </span>
       </div>
       <div className="app-grid">

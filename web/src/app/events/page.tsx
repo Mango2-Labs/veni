@@ -4,12 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Address } from "@solana/kit";
 import { fetchAllMaybeEvent, type Event as EventAccount } from "@veni/client";
-import { chainTime, describeError, fetchEventAddresses } from "@veni/sdk";
+import { cardOfEvent, chainTime, describeError, exampleEvents, fetchEventAddresses } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { EventCard } from "@/components/EventCard";
 import { EventsMap } from "@/components/EventsMap";
-import { cardOfEvent } from "@/lib/event-cards";
-import { exampleEvents } from "@/lib/example-events";
 import { veniReader } from "@/lib/veni";
 
 type Row = { address: Address; event: EventAccount };

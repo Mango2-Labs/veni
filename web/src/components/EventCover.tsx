@@ -1,12 +1,14 @@
+import type { ReactNode } from "react";
 import Image from "next/image";
 
 /** The cover across the top: the square poster centered on a blurred copy of itself. */
-export function CoverBanner({ src, title }: { src: string; title: string }) {
+export function CoverBanner({ src, title, children }: { src: string; title: string; children?: ReactNode }) {
   return (
     <div className="cover-banner">
       {/* At the top of the page, so no lazy loading. */}
       <Image src={src} alt="" fill sizes="256px" className="cover-backdrop" loading="eager" />
       <Image src={src} alt={`Poster for ${title}`} fill sizes="300px" className="cover-poster" loading="eager" fetchPriority="high" />
+      {children}
     </div>
   );
 }

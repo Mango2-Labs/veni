@@ -3,5 +3,7 @@ export * from "./balances";
 export * from "./check-in";
 export * from "./client";
 export * from "./errors";
+export * from "./event-cards";
+export * from "./events";
 export * from "./payouts";
 export * from "./usernames";

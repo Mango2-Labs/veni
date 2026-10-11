@@ -9,7 +9,6 @@ export const reader = createVeniReader(RPC_URL)
 
 export const balancesKey = (wallet: string | undefined) => ['balances', wallet] as const
 
-/** The connected wallet's dollars and SOL. */
 export function useWalletBalances() {
   const { account } = useWallet()
   const wallet = account?.address
@@ -18,16 +17,6 @@ export function useWalletBalances() {
     queryFn: () => fetchWalletBalances(reader, wallet!),
     enabled: Boolean(wallet),
   })
-}
-
-/** Both stake tokens are dollars with 6 decimals: "$12.25". */
-export function formatUsd(baseUnits: bigint) {
-  return `$${(Number(baseUnits) / 1e6).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`
-}
-
-/** "$10" or "$12.25": without empty cents, for cards and buttons. */
-export function formatUsdShort(baseUnits: bigint) {
-  return formatUsd(baseUnits).replace(/\.00$/, '')
 }
 
 export function tokenLabel(mint: Address) {

@@ -19,7 +19,6 @@ import { colors, fonts, radius, type } from '@/lib/theme'
 
 type Check = { username: string; available: boolean; problem?: string }
 
-/** Pick or change a username, signed by the wallet. */
 export default function PickUsername() {
   const router = useRouter()
   const queryClient = useQueryClient()
