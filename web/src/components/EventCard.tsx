@@ -32,29 +32,12 @@ export function EventCard({ event }: { event: EventCardData }) {
   );
 }
 
-const ICONS = {
-  free: "M20 6 9 17l-5-5",
-  paid: "M3 9a3 3 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a3 3 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1zM13 5v2M13 17v2M13 11v2",
-  approval: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4",
-};
-
 /** Free or paid, and whether the host approves guests, on the cover's top-left. */
 export function TypeLabels({ ticket, approval }: { ticket?: string; approval?: boolean }) {
   return (
     <span className="type-labels">
-      {ticket ? <TypeLabel kind="paid" label={`Paid · ${ticket}`} /> : <TypeLabel kind="free" label="Free" />}
-      {approval && <TypeLabel kind="approval" label="Approval required" />}
-    </span>
-  );
-}
-
-function TypeLabel({ kind, label }: { kind: keyof typeof ICONS; label: string }) {
-  return (
-    <span className="type-label">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d={ICONS[kind]} />
-      </svg>
-      {label}
+      {ticket ? <span className="type-label paid">Paid · {ticket}</span> : <span className="type-label free">Free</span>}
+      {approval && <span className="type-label approval">Approval required</span>}
     </span>
   );
 }
