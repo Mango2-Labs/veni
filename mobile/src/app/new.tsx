@@ -8,13 +8,16 @@ import { ChevronLeft } from 'lucide-react-native'
 import { TEST_USD_MINT } from '@veni/client'
 import { getBase64Decoder, getUtf8Encoder } from '@solana/kit'
 import {
+  accountExists,
   chainTime,
   describeError,
   EVENT_CATEGORIES,
   eventCategoryMessage,
   fitBytes,
+  getCreateOwnTokenAccountInstruction,
   isLumaSlug,
   toGeoPoint,
+  tokenAccountOf,
   type EventCategory,
   type LumaEvent,
   type MapPoint,
@@ -31,6 +34,10 @@ import { useVeniClient, useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 const HOUR_MS = 3_600_000
+/** The program caps a paid event's stake, so the ticket is what guests mostly pay. */
+const MAX_PAID_STAKE = 5
+const ACCESS = ['Anyone', 'Guests you approve'] as const
+const TICKETS = ['Free', 'Paid'] as const
 
 /** Two hours from now, on the hour. */
 function defaultStart() {
@@ -47,8 +54,10 @@ export default function NewEvent() {
   const client = useVeniClient()
   const { signMessages } = useWallet()
   const [category, setCategory] = useState<EventCategory>('Meetup')
+  const [access, setAccess] = useState<(typeof ACCESS)[number]>('Anyone')
+  const [ticket, setTicket] = useState<(typeof TICKETS)[number]>('Free')
   const { data: me } = useMyUsername()
-  const [form, setForm] = useState({ title: '', city: '', venue: '', stake: '5', spots: '30' })
+  const [form, setForm] = useState({ title: '', city: '', venue: '', ticketPrice: '25', stake: '5', spots: '30' })
   const [startsAt, setStartsAt] = useState(defaultStart)
   const [endsAt, setEndsAt] = useState(() => new Date(startsAt.getTime() + 2 * HOUR_MS))
   const [point, setPoint] = useState<MapPoint>()
@@ -121,8 +130,12 @@ export default function NewEvent() {
       const venue = form.venue.trim()
       if (!title || !city || !venue) throw new Error('Add the name, city and venue.')
       if (endsAt <= startsAt) throw new Error('The event has to end after it starts.')
+      const isPaid = ticket === 'Paid'
+      const ticketPrice = isPaid ? Number(form.ticketPrice) : 0
+      if (isPaid && !(ticketPrice > 0 && ticketPrice <= 1000)) throw new Error('The ticket price has to be between $0.01 and $1,000.')
       const stake = Number(form.stake)
       if (!(stake > 0 && stake <= 100)) throw new Error('The stake has to be between $0.01 and $100.')
+      if (isPaid && stake > MAX_PAID_STAKE) throw new Error(`A paid event's stake can be at most $${MAX_PAID_STAKE}.`)
       const capacity = Number(form.spots)
       if (!Number.isInteger(capacity) || capacity < 1 || capacity > 10_000) throw new Error('Spots has to be a whole number from 1 to 10,000.')
       // Sign-ups close at the start, so it has to be ahead of the chain's clock.
@@ -132,6 +145,10 @@ export default function NewEvent() {
       const doorKey = await doorKeyFor(client.identity.address)
       const eventId = BigInt(Date.now())
       const [event] = await client.veni.pdas.event({ organizer: client.identity.address, eventId })
+      // Ticket money is paid into the host's own token account.
+      if (isPaid && !(await accountExists(reader, await tokenAccountOf(client.identity.address, TEST_USD_MINT)))) {
+        await client.sendTransaction([await getCreateOwnTokenAccountInstruction(client.identity, TEST_USD_MINT)])
+      }
       await client.veni.instructions
         .createEvent({
           organizer: client.identity,
@@ -139,11 +156,11 @@ export default function NewEvent() {
           eventId,
           terms: {
             stakeAmount: BigInt(Math.round(stake * 1e6)),
-            ticketPrice: 0n,
+            ticketPrice: BigInt(Math.round(ticketPrice * 1e6)),
             rsvpEndsAt: seconds(startsAt),
             checkInEndsAt: seconds(endsAt),
             capacity,
-            requiresApproval: false,
+            requiresApproval: access === 'Guests you approve',
             doorKey: doorKey.address,
             title,
           },
@@ -200,14 +217,7 @@ export default function NewEvent() {
             </View>
           ) : null}
           <Field label="Name" value={form.title} onChangeText={set('title')} maxLength={64} />
-          <View style={{ gap: 8 }}>
-            <Text style={type.label}>Category</Text>
-            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-              {EVENT_CATEGORIES.map((name) => (
-                <Filter key={name} label={name} selected={category === name} onPress={() => setCategory(name)} />
-              ))}
-            </View>
-          </View>
+          <Choices label="Category" options={EVENT_CATEGORIES} value={category} onChange={setCategory} />
           <Picker label="Date" value={startsAt.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} onPress={pickDay} />
           <View className="flex-row" style={{ gap: 10 }}>
             <Picker label="Starts" value={startsAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} onPress={() => pickTime('start')} half />
@@ -227,6 +237,22 @@ export default function NewEvent() {
           {point ? <MapPreview point={point} /> : null}
           <Field label="City" value={form.city} onChangeText={set('city')} maxLength={32} />
           <Field label="Venue" value={form.venue} onChangeText={set('venue')} maxLength={48} />
+          <Choices label="Who can come" options={ACCESS} value={access} onChange={setAccess} />
+          <Choices
+            label="Ticket"
+            options={TICKETS}
+            value={ticket}
+            onChange={(next) => {
+              setTicket(next)
+              if (next === 'Paid' && Number(form.stake) > MAX_PAID_STAKE) set('stake')(String(MAX_PAID_STAKE))
+            }}
+          />
+          {ticket === 'Paid' ? (
+            <View style={{ gap: 6 }}>
+              <Field label="Ticket price ($)" value={form.ticketPrice} onChangeText={set('ticketPrice')} keyboardType="decimal-pad" />
+              <Text style={type.small}>Paid to you 24 hours after the event. Stake at most ${MAX_PAID_STAKE}.</Text>
+            </View>
+          ) : null}
           <View className="flex-row" style={{ gap: 10 }}>
             <Field label="Stake ($)" value={form.stake} onChangeText={set('stake')} keyboardType="decimal-pad" half />
             <Field label="Spots" value={form.spots} onChangeText={set('spots')} keyboardType="number-pad" half />
@@ -298,6 +324,19 @@ function importNote(event: LumaEvent) {
   else if (!event.location) notes.push('Search for the venue.')
   else if (event.locationIsApproximate) notes.push('Luma hides the address, so check the pin.')
   return notes.join(' ')
+}
+
+function Choices<T extends string>({ label, options, value, onChange }: { label: string; options: readonly T[]; value: T; onChange: (value: T) => void }) {
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={type.label}>{label}</Text>
+      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+        {options.map((option) => (
+          <Filter key={option} label={option} selected={value === option} onPress={() => onChange(option)} />
+        ))}
+      </View>
+    </View>
+  )
 }
 
 function Picker({ label, value, onPress, half }: { label: string; value: string; onPress: () => void; half?: boolean }) {
