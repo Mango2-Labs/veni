@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Button } from '@/components/Button'
+import { AddCard } from '@/components/AddCard'
 import { EmptyState } from '@/components/EmptyState'
 import { EventList } from '@/components/EventList'
 import { HostedEventRow } from '@/components/HostedEventRow'
@@ -21,7 +21,6 @@ export default function Host() {
   return (
     <TabScreen
       title="Hosting"
-      action={hasEvents ? <Button label="New event" variant="secondary" compact onPress={() => router.push('/new')} /> : undefined}
       refreshing={events.isRefetching || hostPage.isRefetching}
       onRefresh={() => {
         events.refetch()
@@ -31,6 +30,7 @@ export default function Host() {
       {events.isPending ? <Text style={type.body}>Loading your events…</Text> : null}
       {hosting && !hostPage.isPending && !hasEvents ? <EmptyState title="No events yet" action="New event" onPress={() => router.push('/new')} /> : null}
       {hosting?.length ? <EventList cards={hosting} /> : null}
+      {hasEvents ? <AddCard label="New event" onPress={() => router.push('/new')} /> : null}
       {past.length ? (
         <View>
           <Text accessibilityRole="header" style={{ ...type.heading, marginTop: 8 }}>

@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Plus, Search, X } from 'lucide-react-native'
+import { Search, X } from 'lucide-react-native'
 import { describeError, EVENT_CATEGORIES, type EventCardData, type EventCategory } from '@veni/sdk'
+import { AddCard } from '@/components/AddCard'
 import { Button } from '@/components/Button'
 import { EventList } from '@/components/EventList'
 import { Filter } from '@/components/Filter'
@@ -110,19 +111,7 @@ export default function Explore() {
 
       <EventList cards={shown} />
 
-      {events.data ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.navigate('/host')}
-          style={{ borderRadius: radius.card, borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.lineDk, padding: 28 }}
-          className="items-center gap-3 active:bg-sky"
-        >
-          <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: colors.orange }} className="items-center justify-center">
-            <Plus color={colors.ink} size={26} strokeWidth={2.6} />
-          </View>
-          <Text style={{ ...type.heading }}>Host your own</Text>
-        </Pressable>
-      ) : null}
+      {events.data ? <AddCard label="Host your own" onPress={() => router.navigate('/host')} /> : null}
     </TabScreen>
   )
 }
