@@ -47,6 +47,13 @@ export async function savePhoto(input: PhotoInput & { image: string; signature: 
   return version
 }
 
+/** An event the wallet checked in to, as Veni's archive kept it once it was over. */
+export type PastEvent = { address: string; title: string; hostName: string; city: string; startsAt: number }
+
+export async function fetchPastEvents(wallet: Address) {
+  return (await json<{ attended: PastEvent[] }>(`/api/me?wallet=${wallet}`)).attended
+}
+
 export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
