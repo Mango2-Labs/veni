@@ -28,6 +28,39 @@ export async function placeAt(point: MapPoint, options: PlaceSearchOptions = {})
   return { name: found?.name ?? "", address: found?.address ?? "", city: found?.city ?? "", ...point };
 }
 
+/** Where places came from, which the results have to credit. */
+export type PlaceSource = "Google Maps" | "OpenStreetMap";
+
+/** Google's places, through Veni's site when it has Google set up, otherwise OpenStreetMap's. */
+export async function findPlaces(siteUrl: string, query: string, options: PlaceSearchOptions = {}) {
+  const found = await fromSite<{ places: Place[] }>(`${siteUrl}/api/places?${new URLSearchParams({ q: query, lang: options.language ?? "" })}`, options);
+  if (found) return { places: found.places, source: "Google Maps" as PlaceSource };
+  return { places: await searchPlaces(query, options), source: "OpenStreetMap" as PlaceSource };
+}
+
+/** What's at a pin: Google's answer through Veni's site, otherwise OpenStreetMap's. */
+export async function findPlaceAt(siteUrl: string, point: MapPoint, options: PlaceSearchOptions = {}) {
+  const query = new URLSearchParams({ lat: `${point.latitude}`, lng: `${point.longitude}`, lang: options.language ?? "" });
+  const found = await fromSite<{ place: Place }>(`${siteUrl}/api/places/at?${query}`, options);
+  if (found) return { places: [found.place], source: "Google Maps" as PlaceSource };
+  return { places: [await placeAt(point, options)], source: "OpenStreetMap" as PlaceSource };
+}
+
+/** Veni's map image of a pin, in points; it fails until the site has Google set up. */
+export function mapImageUrl(siteUrl: string, point: MapPoint, width: number, height: number) {
+  return `${siteUrl}/api/places/map?${new URLSearchParams({ lat: `${point.latitude}`, lng: `${point.longitude}`, w: `${Math.round(width)}`, h: `${Math.round(height)}` })}`;
+}
+
+async function fromSite<T>(url: string, { signal }: PlaceSearchOptions) {
+  try {
+    const response = await fetch(url, { signal });
+    return response.ok ? ((await response.json()) as T) : undefined;
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return undefined;
+  }
+}
+
 /** The pin in pasted coordinates ("38.7026, -9.1786") or a full Google Maps link, if there is one. */
 export function pointFromText(text: string): MapPoint | undefined {
   const patterns = [

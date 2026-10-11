@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
-import { describeError, placeAt, pointFromText, searchPlaces, type Place } from '@veni/sdk'
+import { describeError, findPlaceAt, findPlaces, pointFromText, type Place, type PlaceSource } from '@veni/sdk'
+import { VENI_URL } from '@/lib/config'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
-// Nominatim asks apps to name themselves, and for at most one search a second.
+// Google through Veni's site, or OpenStreetMap, which asks apps to name themselves and search at most once a second.
 const USER_AGENT = 'Veni (https://veni-phi.vercel.app)'
 const WAIT_MS = 800
 
@@ -17,6 +18,7 @@ async function pointFromShortLink(text: string, signal: AbortSignal) {
 export function PlaceSearch({ onPick }: { onPick: (place: Place) => void }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Place[]>()
+  const [source, setSource] = useState<PlaceSource>()
   const [error, setError] = useState<string>()
 
   useEffect(() => {
@@ -28,8 +30,10 @@ export function PlaceSearch({ onPick }: { onPick: (place: Place) => void }) {
     const timer = setTimeout(async () => {
       try {
         const point = pointFromText(text) ?? (await pointFromShortLink(text, controller.signal))
-        const found = point ? [await placeAt(point, options)] : await searchPlaces(text, options)
-        if (!controller.signal.aborted) setResults(found)
+        const found = point ? await findPlaceAt(VENI_URL, point, options) : await findPlaces(VENI_URL, text, options)
+        if (controller.signal.aborted) return
+        setResults(found.places)
+        setSource(found.source)
       } catch (caught) {
         if (!controller.signal.aborted) setError(describeError(caught))
       }
@@ -71,7 +75,7 @@ export function PlaceSearch({ onPick }: { onPick: (place: Place) => void }) {
           {place.address ? <Text style={type.small}>{place.address}</Text> : null}
         </Pressable>
       ))}
-      {results?.length ? <Text style={{ ...type.small, fontSize: 12 }}>© OpenStreetMap</Text> : null}
+      {results?.length ? <Text style={{ ...type.small, fontSize: 12 }}>{source === 'Google Maps' ? 'Google Maps' : '© OpenStreetMap'}</Text> : null}
     </View>
   )
 }
