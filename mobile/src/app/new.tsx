@@ -1,0 +1,214 @@
+import { useState, type ComponentProps } from 'react'
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useQueryClient } from '@tanstack/react-query'
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
+import { ChevronLeft } from 'lucide-react-native'
+import { TEST_USD_MINT } from '@veni/client'
+import { chainTime, describeError, fitBytes, toGeoPoint, type MapPoint } from '@veni/sdk'
+import { Button } from '@/components/Button'
+import { MapPreview } from '@/components/MapPreview'
+import { PlaceSearch } from '@/components/PlaceSearch'
+import { reader } from '@/lib/balances'
+import { doorKeyFor } from '@/lib/door-key'
+import { useMyUsername } from '@/lib/username'
+import { useVeniClient } from '@/lib/wallet'
+import { colors, fonts, radius, type } from '@/lib/theme'
+
+const HOUR_MS = 3_600_000
+
+/** Two hours from now, on the hour. */
+function defaultStart() {
+  const start = new Date(Date.now() + 2 * HOUR_MS)
+  start.setMinutes(0, 0, 0)
+  return start
+}
+
+const seconds = (date: Date) => BigInt(Math.floor(date.getTime() / 1000))
+
+export default function NewEvent() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const client = useVeniClient()
+  const { data: me } = useMyUsername()
+  const [form, setForm] = useState({ title: '', city: '', venue: '', stake: '5', spots: '30' })
+  const [startsAt, setStartsAt] = useState(defaultStart)
+  const [endsAt, setEndsAt] = useState(() => new Date(startsAt.getTime() + 2 * HOUR_MS))
+  const [point, setPoint] = useState<MapPoint>()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string>()
+  const set = (field: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [field]: value }))
+
+  /** Moves both times to the picked day, keeping the hours. */
+  function pickDay() {
+    DateTimePickerAndroid.open({
+      value: startsAt,
+      mode: 'date',
+      minimumDate: new Date(),
+      onChange: (event, day) => {
+        if (event.type !== 'set' || !day) return
+        const onDay = (time: Date) => new Date(day.getFullYear(), day.getMonth(), day.getDate(), time.getHours(), time.getMinutes())
+        const start = onDay(startsAt)
+        setStartsAt(start)
+        setEndsAt(new Date(start.getTime() + (endsAt.getTime() - startsAt.getTime())))
+      },
+    })
+  }
+
+  /** An end before the start means the next day, for events past midnight. */
+  function pickTime(which: 'start' | 'end') {
+    DateTimePickerAndroid.open({
+      value: which === 'start' ? startsAt : endsAt,
+      mode: 'time',
+      onChange: (event, time) => {
+        if (event.type !== 'set' || !time) return
+        const at = (hours: Date) => {
+          const date = new Date(startsAt)
+          date.setHours(hours.getHours(), hours.getMinutes(), 0, 0)
+          return date
+        }
+        if (which === 'start') {
+          const start = at(time)
+          setStartsAt(start)
+          setEndsAt(new Date(start.getTime() + Math.max(HOUR_MS, endsAt.getTime() - startsAt.getTime())))
+        } else {
+          const end = at(time)
+          setEndsAt(end > startsAt ? end : new Date(end.getTime() + 24 * HOUR_MS))
+        }
+      },
+    })
+  }
+
+  async function create() {
+    if (!client) return
+    setError(undefined)
+    try {
+      const title = form.title.trim()
+      const city = form.city.trim()
+      const venue = form.venue.trim()
+      if (!title || !city || !venue) throw new Error('Add the name, city and venue.')
+      if (endsAt <= startsAt) throw new Error('The event has to end after it starts.')
+      const stake = Number(form.stake)
+      if (!(stake > 0 && stake <= 100)) throw new Error('The stake has to be between $0.01 and $100.')
+      const capacity = Number(form.spots)
+      if (!Number.isInteger(capacity) || capacity < 1 || capacity > 10_000) throw new Error('Spots has to be a whole number from 1 to 10,000.')
+      // Sign-ups close at the start, so it has to be ahead of the chain's clock.
+      if (seconds(startsAt) <= (await chainTime(reader)) + 60n) throw new Error('That start time has passed. Pick a later one.')
+
+      setBusy(true)
+      const doorKey = await doorKeyFor(client.identity.address)
+      const eventId = BigInt(Date.now())
+      const [event] = await client.veni.pdas.event({ organizer: client.identity.address, eventId })
+      await client.veni.instructions
+        .createEvent({
+          organizer: client.identity,
+          stakeMint: TEST_USD_MINT,
+          eventId,
+          terms: {
+            stakeAmount: BigInt(Math.round(stake * 1e6)),
+            ticketPrice: 0n,
+            rsvpEndsAt: seconds(startsAt),
+            checkInEndsAt: seconds(endsAt),
+            capacity,
+            requiresApproval: false,
+            doorKey: doorKey.address,
+            title,
+          },
+          details: { hostName: me?.username ?? 'Host', city, venue, cover: '', lumaSlug: '', location: point ? toGeoPoint(point) : null },
+        })
+        .sendTransaction()
+      await queryClient.invalidateQueries({ queryKey: ['events'] })
+      router.replace(`/e/${event}`)
+    } catch (caught) {
+      setError(describeError(caught))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.paper }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+        <View className="flex-row items-center px-3 pb-2" style={{ gap: 8 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/host'))}
+            style={{ width: 44, height: 44, borderRadius: 22 }}
+            className="items-center justify-center active:bg-sky"
+          >
+            <ChevronLeft color={colors.ink} size={26} />
+          </Pressable>
+          <Text accessibilityRole="header" style={type.title}>
+            New event
+          </Text>
+        </View>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 16 }} keyboardShouldPersistTaps="handled">
+          <Field label="Name" value={form.title} onChangeText={set('title')} maxLength={64} />
+          <Picker label="Date" value={startsAt.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} onPress={pickDay} />
+          <View className="flex-row" style={{ gap: 10 }}>
+            <Picker label="Starts" value={startsAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} onPress={() => pickTime('start')} half />
+            <Picker
+              label="Ends"
+              value={`${endsAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${endsAt.getDate() !== startsAt.getDate() ? ' +1' : ''}`}
+              onPress={() => pickTime('end')}
+              half
+            />
+          </View>
+          <PlaceSearch
+            onPick={(place) => {
+              setForm((current) => ({ ...current, venue: fitBytes(place.name, 48), city: place.city ? fitBytes(place.city, 32) : current.city }))
+              setPoint({ latitude: place.latitude, longitude: place.longitude })
+            }}
+          />
+          {point ? <MapPreview point={point} /> : null}
+          <Field label="City" value={form.city} onChangeText={set('city')} maxLength={32} />
+          <Field label="Venue" value={form.venue} onChangeText={set('venue')} maxLength={48} />
+          <View className="flex-row" style={{ gap: 10 }}>
+            <Field label="Stake ($)" value={form.stake} onChangeText={set('stake')} keyboardType="decimal-pad" half />
+            <Field label="Spots" value={form.spots} onChangeText={set('spots')} keyboardType="number-pad" half />
+          </View>
+          {error ? (
+            <Text accessibilityRole="alert" style={{ ...type.small, fontFamily: fonts.semibold, color: colors.orangeText }}>
+              {error}
+            </Text>
+          ) : null}
+          <Button label={busy ? 'Check your wallet…' : 'Create event'} onPress={create} busy={busy} disabled={!client} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  )
+}
+
+function Picker({ label, value, onPress, half }: { label: string; value: string; onPress: () => void; half?: boolean }) {
+  return (
+    <View style={{ gap: 8, flex: half ? 1 : undefined }}>
+      <Text style={type.label}>{label}</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value}`}
+        onPress={onPress}
+        className="min-h-14 justify-center border-2 border-line-dk bg-paper px-4 active:bg-sky"
+        style={{ borderRadius: radius.button }}
+      >
+        <Text style={{ fontFamily: fonts.semibold, fontSize: 17, color: colors.ink }}>{value}</Text>
+      </Pressable>
+    </View>
+  )
+}
+
+function Field({ label, half, ...input }: { label: string; half?: boolean } & ComponentProps<typeof TextInput>) {
+  return (
+    <View style={{ gap: 8, flex: half ? 1 : undefined }}>
+      <Text style={type.label}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        placeholderTextColor={colors.muted}
+        className="min-h-14 border-2 border-line-dk bg-paper px-4"
+        style={{ borderRadius: radius.button, fontFamily: fonts.semibold, fontSize: 17, color: colors.ink }}
+        {...input}
+      />
+    </View>
+  )
+}

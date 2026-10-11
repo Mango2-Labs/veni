@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { OPENSTREETMAP_COPYRIGHT, searchPlaces, type Place } from "@/lib/places";
+import { findPlaces, OPENSTREETMAP_COPYRIGHT, type Place, type PlaceSource } from "@/lib/places";
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -10,6 +10,7 @@ export function PlaceSearch({ id, onPick }: { id: string; onPick: (place: Place)
   const listId = useId();
   const [query, setQuery] = useState("");
   const [places, setPlaces] = useState<Place[]>([]);
+  const [source, setSource] = useState<PlaceSource>();
   const [active, setActive] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -31,8 +32,9 @@ export function PlaceSearch({ id, onPick }: { id: string; onPick: (place: Place)
     setIsSearching(true);
     setStatus("Searching…");
     try {
-      const found = await searchPlaces(text, controller.signal);
+      const { places: found, source } = await findPlaces("", text, { signal: controller.signal, language: navigator.language });
       setPlaces(found);
+      setSource(source);
       setActive(found.length > 0 ? 0 : -1);
       setIsOpen(true);
       setStatus(found.length === 0 ? "No match. Try the street address." : undefined);
@@ -123,10 +125,16 @@ export function PlaceSearch({ id, onPick }: { id: string; onPick: (place: Place)
               ))}
             </ul>
             <p className="place-credit">
-              Places from{" "}
-              <a href={OPENSTREETMAP_COPYRIGHT} target="_blank" rel="noopener noreferrer">
-                OpenStreetMap
-              </a>
+              {source === "Google Maps" ? (
+                "Google Maps"
+              ) : (
+                <>
+                  Places from{" "}
+                  <a href={OPENSTREETMAP_COPYRIGHT} target="_blank" rel="noopener noreferrer">
+                    OpenStreetMap
+                  </a>
+                </>
+              )}
             </p>
           </div>
         )}

@@ -14,6 +14,7 @@ export const colors = {
   orangeSoft: '#FDE8DF',
   orangeInk: '#5E2A15',
   teal: '#13A89E',
+  tealOnInk: '#5FD3C8',
   tealText: '#0E7C74',
   tealSoft: '#DDF4F1',
   gold: '#FFC83D',

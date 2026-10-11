@@ -29,7 +29,7 @@ export function TabScreen({
         </View>
       </View>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 32, gap: 16 }}
         refreshControl={
           onRefresh ? <RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} /> : undefined
         }

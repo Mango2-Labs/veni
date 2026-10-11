@@ -6,8 +6,9 @@ import { Camera, Check } from 'lucide-react-native'
 import { formatUsd, formatUsdShort, rewardsEarnedBy, stampDateOf } from '@veni/sdk'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
-import { CityStamp } from '@/components/CityStamp'
+import { EventThumb } from '@/components/EventThumb'
 import { TabScreen } from '@/components/Screen'
+import { Tabs } from '@/components/Tabs'
 import { requestTestFunds, type HistoryEvent } from '@/lib/api'
 import { balancesKey, useWalletBalances } from '@/lib/balances'
 import { photoUrl } from '@/lib/people'
@@ -86,7 +87,14 @@ export default function Profile() {
       </View>
       {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
       <Balance wallet={account.address} total={balances.data?.dollars.reduce((sum, { amount }) => sum + amount, 0n)} failed={balances.isError} />
-      <Tabs value={tab} onChange={setTab} rewardToClaim={rewardsOwed > 0n} />
+      <Tabs
+        tabs={[
+          { key: 'past', label: 'Past events' },
+          { key: 'rewards', label: 'Rewards', dot: rewardsOwed > 0n ? 'Reward to claim' : undefined },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
       {tab === 'past' ? <PastEvents history={history} /> : <Rewards wallet={account.address} stamps={stamps.data ?? 0} rewards={rewards.data} />}
     </TabScreen>
   )
@@ -139,39 +147,6 @@ function Balance({ wallet, total, failed }: { wallet: Address; total: bigint | u
   )
 }
 
-function Tabs({ value, onChange, rewardToClaim }: { value: 'past' | 'rewards'; onChange: (value: 'past' | 'rewards') => void; rewardToClaim: boolean }) {
-  return (
-    <View accessibilityRole="tablist" className="flex-row bg-sky" style={{ borderRadius: radius.button, padding: 4, gap: 4 }}>
-      {(
-        [
-          ['past', 'Past events'],
-          ['rewards', 'Rewards'],
-        ] as const
-      ).map(([key, label]) => {
-        const selected = value === key
-        return (
-          <Pressable
-            key={key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            onPress={() => onChange(key)}
-            style={{ flex: 1, minHeight: 44, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.paper : 'transparent' }}
-          >
-            <View className="flex-row items-center" style={{ gap: 6 }}>
-              <Text style={{ fontFamily: selected ? fonts.heavy : fonts.bold, fontSize: 14, color: selected ? colors.ink : colors.ink2 }}>{label}</Text>
-              {key === 'rewards' && rewardToClaim ? (
-                <View accessibilityLabel="Reward to claim" style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.orange }} />
-              ) : null}
-            </View>
-          </Pressable>
-        )
-      })}
-    </View>
-  )
-}
-
-const STAMP_COLORS = [colors.tealText, colors.ink, colors.orangeText]
-
 const OUTCOMES = {
   'checked-in': { label: 'Checked in', color: colors.tealText },
   missed: { label: 'Missed', color: colors.orangeText },
@@ -195,8 +170,8 @@ function PastEvents({ history }: { history: ReturnType<typeof useHistory> }) {
   return (
     <View style={{ gap: 12 }}>
       <View>
-        {events.map((event, index) => (
-          <PastEventRow key={event.address} event={event} color={STAMP_COLORS[index % STAMP_COLORS.length]} />
+        {events.map((event) => (
+          <PastEventRow key={event.address} event={event} />
         ))}
       </View>
       {history.hasNextPage ? <Button label="Show more" variant="secondary" busy={history.isFetchingNextPage} onPress={() => history.fetchNextPage()} /> : null}
@@ -204,7 +179,7 @@ function PastEvents({ history }: { history: ReturnType<typeof useHistory> }) {
   )
 }
 
-function PastEventRow({ event, color }: { event: HistoryEvent; color: string }) {
+function PastEventRow({ event }: { event: HistoryEvent }) {
   const outcome = OUTCOMES[event.outcome]
   const date = stampDateOf(new Date(event.startsAt * 1000))
   const result = BigInt(event.result)
@@ -217,13 +192,13 @@ function PastEventRow({ event, color }: { event: HistoryEvent; color: string }) 
       className="flex-row items-center border-b border-line"
       style={{ gap: 14, paddingVertical: 14 }}
     >
-      <CityStamp city={event.city} date={date} color={event.outcome === 'checked-in' ? color : colors.muted} size={62} />
+      <EventThumb cover={event.cover} title={event.title} seed={event.address} faded={event.outcome !== 'checked-in'} />
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={type.strong} numberOfLines={2}>
           {event.title}
         </Text>
         <Text style={type.small} numberOfLines={1}>
-          Hosted by {event.hostName}
+          {date} · {event.venue ? `${event.venue}, ${event.city}` : event.city}
         </Text>
         <Text style={{ ...type.small, fontFamily: fonts.bold, color: outcome.color }}>{outcome.label}</Text>
       </View>

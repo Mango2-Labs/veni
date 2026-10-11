@@ -109,3 +109,23 @@ export function mapsLink({ latitude, longitude }: MapPoint) {
 export function locationOf(event: EventAccount) {
   return isSome(event.details.location) ? fromGeoPoint(event.details.location.value) : undefined;
 }
+
+/** Cuts text to fit an on-chain byte limit, ending in "…" when anything was cut. */
+export function fitBytes(value: string, limit: number) {
+  const bytes = (part: string) => new TextEncoder().encode(part).length;
+  if (bytes(value) <= limit) return value;
+  let cut = "";
+  for (const char of value) {
+    if (bytes(cut + char + "…") > limit) break;
+    cut += char;
+  }
+  return cut.trimEnd() + "…";
+}
+
+/** "8 of 10 showed up", or what happened instead, for an event that's over. */
+export function turnoutOf(event: { isCancelled: boolean; guestCount: number; attendedCount: number }) {
+  if (event.isCancelled) return "Cancelled";
+  if (event.guestCount === 0) return "Nobody signed up";
+  if (event.attendedCount === 0) return "Nobody checked in";
+  return `${event.attendedCount} of ${event.guestCount} showed up`;
+}

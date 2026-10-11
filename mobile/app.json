@@ -49,7 +49,8 @@
         }
       ],
       "./plugins/with-dapp-store-signing",
-      "./plugins/with-stripped-permissions"
+      "./plugins/with-stripped-permissions",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

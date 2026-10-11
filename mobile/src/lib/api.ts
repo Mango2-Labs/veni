@@ -53,6 +53,9 @@ export type HistoryEvent = {
   title: string
   hostName: string
   city: string
+  // Newer fields: the live site sends them once this ships.
+  venue?: string
+  cover?: string
   startsAt: number
   outcome: 'checked-in' | 'missed' | 'cancelled'
   result: string
@@ -66,9 +69,25 @@ export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
 
+/** An event a host ran, as Veni's archive kept it once it was over. */
+export type HostedEvent = {
+  address: string
+  title: string
+  hostName: string
+  city: string
+  venue: string
+  /** A Luma poster's link, or empty. */
+  cover: string
+  startsAt: number
+  guestCount: number
+  attendedCount: number
+  isCancelled: boolean
+}
+
 export type HostPage = {
-  profile?: { name: string }
+  profile?: { name: string; lumaCalendar: string; registeredAt: string }
   record: { eventCount: number; guestCount: number; attendedCount: number }
+  pastEvents: HostedEvent[]
 }
 
 export function fetchHostPage(wallet: Address) {
