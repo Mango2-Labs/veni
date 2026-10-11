@@ -1,5 +1,5 @@
 import type { Address } from '@solana/kit'
-import type { UsernameInput } from '@veni/sdk'
+import type { PhotoInput, UsernameInput } from '@veni/sdk'
 import { VENI_URL } from './config'
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
@@ -18,8 +18,8 @@ function post<T>(path: string, body: unknown) {
   return json<T>(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
 }
 
-/** Empty when the wallet has no username. */
-export type MyUsername = { username?: string; changeableAt?: string }
+/** Empty when the wallet has no username. `photo` is the photo's version. */
+export type MyUsername = { username?: string; changeableAt?: string; photo?: number }
 
 export function fetchMyUsername(wallet: Address) {
   return json<MyUsername>(`/api/usernames/${wallet}`)
@@ -35,6 +35,16 @@ export async function saveUsername(input: UsernameInput & { signature: string })
   const { username } = await post<{ username?: string }>('/api/usernames', input)
   if (!username) throw new Error("Couldn't save your username.")
   return username
+}
+
+export function fetchPeople(wallets: Address[]) {
+  return json<{ usernames: Record<string, string>; photos: Record<string, number> }>(`/api/usernames?wallets=${wallets.join(',')}`)
+}
+
+export async function savePhoto(input: PhotoInput & { image: string; signature: string }) {
+  const { version } = await post<{ version?: number }>('/api/photos', input)
+  if (!version) throw new Error("Couldn't save your photo.")
+  return version
 }
 
 export function requestTestFunds(wallet: Address) {

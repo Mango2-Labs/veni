@@ -1,9 +1,15 @@
 import { Image, Pressable, Text, View } from 'react-native'
 import { coverIndexOf, type EventCardData } from '@veni/sdk'
+import { Avatar } from './Avatar'
 import { Chip } from './Chip'
 import { TypeLabels } from './TypeLabels'
 import { CityStamp } from './CityStamp'
 import { colors, fonts, radius, type } from '@/lib/theme'
+
+/** "SB" for "Seoul Builders". */
+export function initialsOf(name: string) {
+  return name.trim().split(/\s+/).slice(0, 2).map((word) => [...word][0]?.toUpperCase() ?? '').join('') || '?'
+}
 
 export const COVERS = [
   { background: colors.ink, color: colors.paper },
@@ -14,7 +20,14 @@ export const COVERS = [
   { background: colors.orangeSoft, color: colors.orangeInk },
 ]
 
-export function EventCard({ event, onPress }: { event: EventCardData; onPress?: () => void }) {
+const HOST_LOGOS = {
+  monkedao: require('../../assets/hosts/monkedao.png'),
+  solana: require('../../assets/hosts/solana.png'),
+  'superteam-sg': require('../../assets/hosts/superteam-sg.png'),
+  'superteam-ca': require('../../assets/hosts/superteam-ca.png'),
+}
+
+export function EventCard({ event, hostPhoto, onPress }: { event: EventCardData; hostPhoto?: string; onPress?: () => void }) {
   const cover = COVERS[coverIndexOf(event.seed, { paid: Boolean(event.ticket), approval: event.approval })]
   const stake = event.ticket ? `${event.ticket} + ${event.stake} stake` : `${event.stake} stake`
   const content = (
@@ -39,7 +52,10 @@ export function EventCard({ event, onPress }: { event: EventCardData; onPress?: 
       </View>
       <View style={{ gap: 4, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 18 }}>
         {event.cover ? <Text style={{ ...type.heading, fontSize: 18 }}>{event.title}</Text> : null}
-        <Text style={type.strong}>{event.hostName}</Text>
+        <View className="flex-row items-center gap-2">
+          <Avatar initials={initialsOf(event.hostName)} photo={event.hostLogo ? HOST_LOGOS[event.hostLogo] : hostPhoto} size={28} />
+          <Text style={type.strong}>{event.hostName}</Text>
+        </View>
         <Text style={{ ...type.small, color: colors.ink2 }}>
           {event.when} · {event.place}
         </Text>

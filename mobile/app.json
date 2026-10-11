@@ -14,8 +14,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#14223F"
       },
-      "permissions": ["android.permission.CAMERA"],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -35,6 +39,13 @@
           "imageWidth": 120,
           "resizeMode": "contain",
           "backgroundColor": "#14223F"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": false,
+          "microphonePermission": false
         }
       ],
       "./plugins/with-dapp-store-signing",

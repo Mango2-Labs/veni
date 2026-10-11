@@ -22,15 +22,18 @@ import {
   stageOf,
   stampDateOf,
 } from '@veni/sdk'
+import { shortAddress } from '@/components/AccountMenu'
+import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { TypeLabels } from '@/components/TypeLabels'
 import { CityStamp } from '@/components/CityStamp'
-import { COVERS } from '@/components/EventCard'
+import { COVERS, initialsOf } from '@/components/EventCard'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
 import { requestTestFunds } from '@/lib/api'
 import { reader, tokenLabel } from '@/lib/balances'
 import { eventKey, useDescription, useEventSnapshot, useHostPage } from '@/lib/event'
+import { photoUrl, usePeople } from '@/lib/people'
 import { useVeniClient, useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
@@ -153,6 +156,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
 
       <StakeCard event={event} />
       <GuestActions address={address} snapshot={snapshot} />
+      <Guests snapshot={snapshot} />
     </ScrollView>
   )
 }
@@ -173,7 +177,7 @@ function Detail({ icon, title, children }: { icon: ReactNode; title: string; chi
 
 function HostRow({ event }: { event: EventAccount }) {
   const host = useHostPage(event.organizer)
-  const initials = event.details.hostName.trim().split(/\s+/).slice(0, 2).map((word) => [...word][0]?.toUpperCase() ?? '').join('') || '?'
+  const people = usePeople([event.organizer])
   let record = ''
   if (host.data) {
     const { profile, record: past } = host.data
@@ -186,15 +190,56 @@ function HostRow({ event }: { event: EventAccount }) {
   }
   return (
     <View style={{ borderRadius: radius.card, backgroundColor: colors.ink, padding: 16 }} className="flex-row items-center gap-3">
-      <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.orange }} className="items-center justify-center">
-        <Text style={{ fontFamily: fonts.display, fontSize: 16, color: colors.ink }}>{initials}</Text>
-      </View>
+      <Avatar initials={initialsOf(event.details.hostName)} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
         <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
         <Text style={{ ...type.small, color: colors.sky }}>{record || ' '}</Text>
       </View>
     </View>
   )
+}
+
+function Guests({ snapshot }: { snapshot: Snapshot }) {
+  const { event, guests, now } = snapshot
+  const { account } = useWallet()
+  const approved = guests.filter((guest) => guest.data.isApproved)
+  const people = usePeople(approved.map((guest) => guest.data.wallet))
+  const stage = stageOf(event, now)
+  return (
+    <View style={{ gap: 10 }}>
+      <Text accessibilityRole="header" style={type.heading}>
+        Guests
+      </Text>
+      {approved.length === 0 ? (
+        <Text style={type.small}>{event.terms.requiresApproval ? 'Nobody is approved yet.' : 'Nobody has signed up yet.'}</Text>
+      ) : null}
+      {approved.map(({ address: key, data: { wallet, hasAttended } }) => {
+        const username = people.data?.usernames?.[wallet]
+        const [label, tone] = hasAttended
+          ? ['Checked in', 'stage-running']
+          : stage === 'open' || stage === 'running'
+            ? ['Going', 'stage-open']
+            : refundsEveryone(event, stage)
+              ? ['Refund due', 'stage-open']
+              : ['Missed', 'stage-cancelled']
+        return (
+          <View key={key} className="flex-row items-center gap-3" style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 10 }}>
+            <Avatar username={username} photo={photoUrl(wallet, people.data?.photos?.[wallet])} size={32} />
+            <Text style={{ ...type.strong, flex: 1 }} numberOfLines={1}>
+              {username ?? shortAddress(wallet)}
+              {wallet === account?.address ? <Text style={type.small}> (you)</Text> : null}
+            </Text>
+            <Chip label={label} tone={tone} />
+          </View>
+        )
+      })}
+    </View>
+  )
+}
+
+/** Cancelled, or nobody checked in: every guest gets their whole stake back. */
+function refundsEveryone(event: EventAccount, stage: ReturnType<typeof stageOf>) {
+  return stage === 'cancelled' || stage === 'refunding' || (stage === 'ended' && event.attendedCount === 0)
 }
 
 function totalOf(event: EventAccount) {
@@ -265,8 +310,8 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
   const canSignUp = stage === 'open' && !isHost && !me && event.guestCount < terms.capacity
   const full = stage === 'open' && !isHost && !me && event.guestCount >= terms.capacity
   const going = (stage === 'open' || stage === 'running') && myGuest && !myGuest.data.hasAttended
-  const refundsEveryone = stage === 'cancelled' || stage === 'refunding' || (stage === 'ended' && event.attendedCount === 0)
-  const missed = (stage === 'ended' || stage === 'settled') && !refundsEveryone && myGuest && !myGuest.data.hasAttended
+  const refundsAll = refundsEveryone(event, stage)
+  const missed = (stage === 'ended' || stage === 'settled') && !refundsAll && myGuest && !myGuest.data.hasAttended
   const notEnough = balance.data !== undefined && balance.data < total
   const signUpLabel = `${terms.ticketPrice > 0n ? 'Pay' : 'Stake'} ${formatUsdShort(total)} and ${applying ? 'apply' : 'sign up'}`
 
@@ -370,9 +415,9 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
           <Text style={{ fontFamily: fonts.bold, color: colors.ink }}>You're going.</Text> At the door, scan the code to check in.
         </Note>
       ) : null}
-      {myGuest?.data.hasAttended && !refundsEveryone ? <Note>You're checked in. Your stake comes back after the event.</Note> : null}
+      {myGuest?.data.hasAttended && !refundsAll ? <Note>You're checked in. Your stake comes back after the event.</Note> : null}
       {missed ? <Note bad>You missed it. Your stake goes to those who came.</Note> : null}
-      {myGuest && refundsEveryone ? (
+      {myGuest && refundsAll ? (
         <Note>
           {event.isCancelled ? 'Cancelled' : 'Nobody checked in'}. Your {formatUsd(total)} comes back.
         </Note>

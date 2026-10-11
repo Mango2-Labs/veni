@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { coverIndexOf, type EventCardData } from "@veni/sdk";
+import { Face } from "@/components/Face";
+import { initialsOf } from "@/lib/host-profile";
 
 export function EventCard({ event }: { event: EventCardData }) {
   const content = (
@@ -12,7 +14,10 @@ export function EventCard({ event }: { event: EventCardData }) {
       </div>
       <div className="event-card-body">
         {event.cover && <span className="event-card-title">{event.title}</span>}
-        <b>{event.hostName}</b>
+        <span className="card-host">
+          <Face wallet={event.organizer} src={event.hostLogo && `/hosts/${event.hostLogo}.png`} initials={initialsOf(event.hostName)} className="member-face" />
+          <b>{event.hostName}</b>
+        </span>
         <span>{event.when} · {event.place}</span>
         <span className="event-card-tags">
           {event.stage && <span className={`stage ${event.stage.className}`}>{event.stage.label}</span>}

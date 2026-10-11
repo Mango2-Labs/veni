@@ -12,6 +12,7 @@ import { EventCard } from "@/components/EventCard";
 import { ProfileStamps } from "@/components/PastEventList";
 import { useJson, usePastEventsAttendedBy } from "@/lib/archive-client";
 import { isEventAccount } from "@/lib/events";
+import { PhotoPicker } from "@/components/PhotoPicker";
 import { UsernamePicker } from "@/components/UsernamePicker";
 import { useUsernameOf } from "@/lib/usernames-client";
 import { veniReader } from "@/lib/veni";
@@ -47,6 +48,7 @@ export default function ProfilePage() {
 }
 
 function Profile({ account, wallet }: { account: UiWalletAccount; wallet: Address }) {
+  const [photoError, setPhotoError] = useState<string>();
   const username = useUsernameOf(wallet);
   const [isChanging, setIsChanging] = useState(false);
   const [changes, setChanges] = useState(0);
@@ -89,9 +91,10 @@ function Profile({ account, wallet }: { account: UiWalletAccount; wallet: Addres
   return (
     <>
       <section className="passport-cover" aria-labelledby="profile">
-        <span className="passport-face" aria-hidden="true">{username ? usernameInitials(username) : "?"}</span>
+        <PhotoPicker account={account} initials={username ? usernameInitials(username) : "?"} onError={setPhotoError} />
         <div className="app-head">
           <h1 id="profile">{username ?? "Profile"}</h1>
+          {photoError && <p className="passport-note" role="alert">{photoError}</p>}
           {username && changeableAt !== undefined && openedAt >= changeableAt && (
             <button type="button" className="passport-edit" onClick={() => setIsChanging(true)}>
               Change username

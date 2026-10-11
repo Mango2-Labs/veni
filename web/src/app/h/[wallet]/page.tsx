@@ -9,6 +9,7 @@ import { fetchAllMaybeEvent, type Event as EventAccount } from "@veni/client";
 import { cardOfEvent, chainTime, describeError, fetchEventAddressesOf } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { EventCard } from "@/components/EventCard";
+import { Face } from "@/components/Face";
 import { PastEventList } from "@/components/PastEventList";
 import { WalletName } from "@/components/WalletName";
 import { turnoutPercent, useHostPage } from "@/lib/archive-client";
@@ -67,7 +68,7 @@ function Host({ wallet }: { wallet: Address }) {
   return (
     <div className="app-form">
       <section className="passport-cover" aria-labelledby="host-name">
-        <span className="passport-face" aria-hidden="true">{initialsOf(name)}</span>
+        <Face wallet={wallet} initials={initialsOf(name)} />
         <div className="app-head">
           <p className="passport-kicker">
             {profile
