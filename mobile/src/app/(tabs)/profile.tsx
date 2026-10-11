@@ -115,7 +115,7 @@ function Balance({ wallet, total, failed }: { wallet: Address; total: bigint | u
     setError(undefined)
     try {
       await requestTestFunds(wallet)
-      await queryClient.invalidateQueries({ queryKey: balancesKey(wallet) })
+      await Promise.all([balancesKey(wallet), rewardsKey(wallet)].map((queryKey) => queryClient.invalidateQueries({ queryKey })))
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught))
     } finally {
@@ -278,7 +278,11 @@ function Rewards({ wallet, stamps, rewards }: { wallet: Address; stamps: number;
       <Text accessibilityRole="header" style={{ ...type.heading, marginBottom: 4 }}>
         Milestones
       </Text>
-      {!seeker ? <Text style={type.small}>Claiming needs a Seeker Genesis Token in this wallet.</Text> : null}
+      {!seeker ? (
+        <Text style={type.small}>
+          Claiming needs a Seeker Genesis Token. This test version uses a test one: tap Get test funds to get it, if this wallet holds a real one.
+        </Text>
+      ) : null}
       {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
       {settings.milestones.map(({ stamps: at, amount }) => {
         total += amount
