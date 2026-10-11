@@ -5,7 +5,7 @@ import { coverIndexOf, type EventCardData } from "@veni/sdk";
 export function EventCard({ event }: { event: EventCardData }) {
   const content = (
     <>
-      <div className={`event-card-cover ${event.cover ? "has-image" : coverClassOf(event.seed)}`}>
+      <div className={`event-card-cover ${event.cover ? "has-image" : coverClassOf(event.seed, { paid: Boolean(event.ticket), approval: event.approval })}`}>
         {event.cover ? <Image src={event.cover} alt="" fill sizes="(max-width: 640px) 100vw, 400px" /> : event.title}
         <TypeLabels ticket={event.ticket} approval={event.approval} />
         <CityStamp city={event.city} date={event.stampDate} />
@@ -53,6 +53,6 @@ export function CityStamp({ city, date }: { city: string; date: string }) {
 }
 
 /** One of the six cover colors, picked by `seed` so an event keeps its color. */
-export function coverClassOf(seed: string) {
-  return `cover-${coverIndexOf(seed)}`;
+export function coverClassOf(seed: string, labels?: Parameters<typeof coverIndexOf>[1]) {
+  return `cover-${coverIndexOf(seed, labels)}`;
 }

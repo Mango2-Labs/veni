@@ -92,7 +92,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
   const { terms, details } = event
   const stage = stageOf(event, now)
   const cover = coverOf(event)
-  const tone = COVERS[coverIndexOf(address)]
+  const tone = COVERS[coverIndexOf(address, { paid: terms.ticketPrice > 0n, approval: terms.requiresApproval })]
   const location = locationOf(event)
   const luma = lumaLinkOf(event)
   const description = useDescription(address, event)

@@ -15,7 +15,7 @@ export const COVERS = [
 ]
 
 export function EventCard({ event, onPress }: { event: EventCardData; onPress?: () => void }) {
-  const cover = COVERS[coverIndexOf(event.seed)]
+  const cover = COVERS[coverIndexOf(event.seed, { paid: Boolean(event.ticket), approval: event.approval })]
   const stake = event.ticket ? `${event.ticket} + ${event.stake} stake` : `${event.stake} stake`
   const content = (
     <>

@@ -59,11 +59,16 @@ export function coverOf(event: EventAccount) {
   return isCoverUrl(event.details.cover) ? event.details.cover : undefined;
 }
 
-/** Which of the six cover colors an event without a poster gets, picked by `seed` so it keeps its color. */
-export function coverIndexOf(seed: string) {
+/**
+ * Which cover color an event without a poster gets (0 navy, 1 orange, 2 teal, 3 gold, 4 sky, 5 peach),
+ * picked by `seed` so it keeps its color, and never one its type labels would blend into.
+ */
+export function coverIndexOf(seed: string, { paid = false, approval = false } = {}) {
+  const clashes = [...(paid ? [3] : [4, 5]), ...(approval ? [0] : [])];
+  const choices = [0, 1, 2, 3, 4, 5].filter((index) => !clashes.includes(index));
   let hash = 0;
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) % 997;
-  return hash % 6;
+  return choices[hash % choices.length];
 }
 
 /** Byte limit for the path after "luma.com/". */

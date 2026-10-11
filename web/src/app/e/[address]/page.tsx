@@ -241,7 +241,7 @@ function EventView({
             <h1 className="app-title">{terms.title}</h1>
           </>
         ) : (
-          <div className={`event-poster ${coverClassOf(eventAddress)}`}>
+          <div className={`event-poster ${coverClassOf(eventAddress, { paid: terms.ticketPrice > 0n, approval: terms.requiresApproval })}`}>
             <h1>{terms.title}</h1>
             <TypeLabels ticket={ticket} approval={terms.requiresApproval} />
             <CityStamp city={details.city} date={stampDateOf(startsAtDate)} />
