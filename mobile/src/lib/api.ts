@@ -1,5 +1,5 @@
 import type { Address } from '@solana/kit'
-import type { PhotoInput, UsernameInput } from '@veni/sdk'
+import type { EventCategory, EventCategoryInput, PhotoInput, UsernameInput } from '@veni/sdk'
 import { VENI_URL } from './config'
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
@@ -63,6 +63,16 @@ export type HistoryEvent = {
 
 export function fetchHistory(wallet: Address, offset: number) {
   return json<{ events: HistoryEvent[]; earned: string; hasMore: boolean }>(`/api/me/history?wallet=${wallet}&offset=${offset}`)
+}
+
+/** The categories hosts set for these events. Empty on a site that doesn't have them yet. */
+export async function fetchCategories(events: string[]) {
+  if (events.length === 0) return {}
+  return (await json<{ categories?: Record<string, EventCategory> }>(`/api/events/categories?events=${events.join(',')}`)).categories ?? {}
+}
+
+export function saveCategory({ event, ...input }: EventCategoryInput & { signature: string }) {
+  return post<{ saved: true }>(`/api/events/${event}/category`, input)
 }
 
 export function requestTestFunds(wallet: Address) {

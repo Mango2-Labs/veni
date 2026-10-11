@@ -6,14 +6,17 @@ import { useQueryClient } from '@tanstack/react-query'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { ChevronLeft } from 'lucide-react-native'
 import { TEST_USD_MINT } from '@veni/client'
-import { chainTime, describeError, fitBytes, toGeoPoint, type MapPoint } from '@veni/sdk'
+import { getBase64Decoder, getUtf8Encoder } from '@solana/kit'
+import { chainTime, describeError, EVENT_CATEGORIES, eventCategoryMessage, fitBytes, toGeoPoint, type EventCategory, type MapPoint } from '@veni/sdk'
 import { Button } from '@/components/Button'
+import { Filter } from '@/components/Filter'
 import { MapPreview } from '@/components/MapPreview'
 import { PlaceSearch } from '@/components/PlaceSearch'
 import { reader } from '@/lib/balances'
 import { doorKeyFor } from '@/lib/door-key'
 import { useMyUsername } from '@/lib/username'
-import { useVeniClient } from '@/lib/wallet'
+import { saveCategory } from '@/lib/api'
+import { useVeniClient, useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 const HOUR_MS = 3_600_000
@@ -31,6 +34,8 @@ export default function NewEvent() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const client = useVeniClient()
+  const { signMessages } = useWallet()
+  const [category, setCategory] = useState<EventCategory>('Meetup')
   const { data: me } = useMyUsername()
   const [form, setForm] = useState({ title: '', city: '', venue: '', stake: '5', spots: '30' })
   const [startsAt, setStartsAt] = useState(defaultStart)
@@ -118,6 +123,12 @@ export default function NewEvent() {
           details: { hostName: me?.username ?? 'Host', city, venue, cover: '', lumaSlug: '', location: point ? toGeoPoint(point) : null },
         })
         .sendTransaction()
+      // A second, free signature saves the category on Veni's site. The event stands either way.
+      const signedAt = new Date().toISOString()
+      try {
+        const [signed] = await signMessages([getUtf8Encoder().encode(eventCategoryMessage({ event, category, signedAt })) as Uint8Array])
+        await saveCategory({ event, category, signedAt, signature: getBase64Decoder().decode(signed.slice(-64)) })
+      } catch {}
       await queryClient.invalidateQueries({ queryKey: ['events'] })
       router.replace(`/e/${event}`)
     } catch (caught) {
@@ -146,6 +157,14 @@ export default function NewEvent() {
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 16 }} keyboardShouldPersistTaps="handled">
           <Field label="Name" value={form.title} onChangeText={set('title')} maxLength={64} />
+          <View style={{ gap: 8 }}>
+            <Text style={type.label}>Category</Text>
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {EVENT_CATEGORIES.map((name) => (
+                <Filter key={name} label={name} selected={category === name} onPress={() => setCategory(name)} />
+              ))}
+            </View>
+          </View>
           <Picker label="Date" value={startsAt.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} onPress={pickDay} />
           <View className="flex-row" style={{ gap: 10 }}>
             <Picker label="Starts" value={startsAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} onPress={() => pickTime('start')} half />

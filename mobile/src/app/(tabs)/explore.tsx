@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X } from 'lucide-react-native'
-import { describeError, type EventCardData } from '@veni/sdk'
+import { describeError, EVENT_CATEGORIES, type EventCardData, type EventCategory } from '@veni/sdk'
 import { Button } from '@/components/Button'
 import { EventList } from '@/components/EventList'
+import { Filter } from '@/components/Filter'
 import { TabScreen } from '@/components/Screen'
 import { useEventCards } from '@/lib/events'
 import { colors, fonts, radius, type } from '@/lib/theme'
@@ -13,12 +14,13 @@ export default function Explore() {
   const router = useRouter()
   const events = useEventCards()
   const [city, setCity] = useState<string>()
+  const [category, setCategory] = useState<EventCategory>()
   const [searching, setSearching] = useState(false)
   const [query, setQuery] = useState('')
   const cards = useMemo(() => events.data ?? [], [events.data])
   const cities = useMemo(() => [...new Set(cards.map((card) => card.city))], [cards])
   const words = searchWords(query)
-  const shown = cards.filter((card) => (!city || card.city === city) && matches(card, words))
+  const shown = cards.filter((card) => (!city || card.city === city) && (!category || card.category === category) && matches(card, words))
 
   function closeSearch() {
     setQuery('')
@@ -70,15 +72,19 @@ export default function Explore() {
           </Pressable>
         </View>
       ) : null}
+      <FilterRow>
+        <Filter label="All" selected={!category} onPress={() => setCategory(undefined)} />
+        {EVENT_CATEGORIES.map((name) => (
+          <Filter key={name} label={name} selected={category === name} onPress={() => setCategory(name)} />
+        ))}
+      </FilterRow>
       {cities.length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginHorizontal: -20 }}>
-          <View style={{ width: 10 }} />
+        <FilterRow>
           <Filter label="All cities" selected={!city} onPress={() => setCity(undefined)} />
           {cities.map((name) => (
             <Filter key={name} label={name} selected={city === name} onPress={() => setCity(name)} />
           ))}
-          <View style={{ width: 10 }} />
-        </ScrollView>
+        </FilterRow>
       ) : null}
 
       {events.isPending ? (
@@ -136,26 +142,16 @@ function matches(card: EventCardData, words: string[]) {
   return words.every((word) => haystack.includes(word))
 }
 
-function Filter({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+/** A row of filters that scrolls sideways, edge to edge. */
+function FilterRow({ children }: { children: ReactNode }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={{
-        minHeight: 40,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        justifyContent: 'center',
-        backgroundColor: selected ? colors.ink : colors.paper,
-        borderWidth: selected ? 0 : 1.5,
-        borderColor: colors.line,
-      }}
-    >
-      <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: selected ? colors.paper : colors.ink }}>{label}</Text>
-    </Pressable>
+    // Grows no taller than its chips, however much room the screen has.
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }} style={{ marginHorizontal: -20, flexGrow: 0 }}>
+      {children}
+    </ScrollView>
   )
 }
+
 
 function CardSkeleton() {
   return (
