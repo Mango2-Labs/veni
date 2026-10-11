@@ -8,6 +8,7 @@ import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { CityStamp } from '@/components/CityStamp'
 import { TabScreen } from '@/components/Screen'
+import { Tabs } from '@/components/Tabs'
 import { requestTestFunds, type HistoryEvent } from '@/lib/api'
 import { balancesKey, useWalletBalances } from '@/lib/balances'
 import { photoUrl } from '@/lib/people'
@@ -86,7 +87,14 @@ export default function Profile() {
       </View>
       {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
       <Balance wallet={account.address} total={balances.data?.dollars.reduce((sum, { amount }) => sum + amount, 0n)} failed={balances.isError} />
-      <Tabs value={tab} onChange={setTab} rewardToClaim={rewardsOwed > 0n} />
+      <Tabs
+        tabs={[
+          { key: 'past', label: 'Past events' },
+          { key: 'rewards', label: 'Rewards', dot: rewardsOwed > 0n ? 'Reward to claim' : undefined },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
       {tab === 'past' ? <PastEvents history={history} /> : <Rewards wallet={account.address} stamps={stamps.data ?? 0} rewards={rewards.data} />}
     </TabScreen>
   )
@@ -135,37 +143,6 @@ function Balance({ wallet, total, failed }: { wallet: Address; total: bigint | u
         <Button label="Get test funds" variant="secondary" busy={busy} onPress={getTestFunds} />
       </View>
       {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
-    </View>
-  )
-}
-
-function Tabs({ value, onChange, rewardToClaim }: { value: 'past' | 'rewards'; onChange: (value: 'past' | 'rewards') => void; rewardToClaim: boolean }) {
-  return (
-    <View accessibilityRole="tablist" className="flex-row bg-sky" style={{ borderRadius: radius.button, padding: 4, gap: 4 }}>
-      {(
-        [
-          ['past', 'Past events'],
-          ['rewards', 'Rewards'],
-        ] as const
-      ).map(([key, label]) => {
-        const selected = value === key
-        return (
-          <Pressable
-            key={key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            onPress={() => onChange(key)}
-            style={{ flex: 1, minHeight: 44, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.paper : 'transparent' }}
-          >
-            <View className="flex-row items-center" style={{ gap: 6 }}>
-              <Text style={{ fontFamily: selected ? fonts.heavy : fonts.bold, fontSize: 14, color: selected ? colors.ink : colors.ink2 }}>{label}</Text>
-              {key === 'rewards' && rewardToClaim ? (
-                <View accessibilityLabel="Reward to claim" style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.orange }} />
-              ) : null}
-            </View>
-          </Pressable>
-        )
-      })}
     </View>
   )
 }

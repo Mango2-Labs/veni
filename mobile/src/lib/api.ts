@@ -70,6 +70,7 @@ export function requestTestFunds(wallet: Address) {
 export type HostedEvent = {
   address: string
   title: string
+  hostName: string
   city: string
   venue: string
   startsAt: number
@@ -79,7 +80,7 @@ export type HostedEvent = {
 }
 
 export type HostPage = {
-  profile?: { name: string }
+  profile?: { name: string; lumaCalendar: string; registeredAt: string }
   record: { eventCount: number; guestCount: number; attendedCount: number }
   pastEvents: HostedEvent[]
 }

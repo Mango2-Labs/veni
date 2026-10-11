@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as Haptics from 'expo-haptics'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, ChevronLeft, MapPin, UsersRound } from 'lucide-react-native'
+import { CalendarDays, ChevronLeft, ChevronRight, MapPin, UsersRound } from 'lucide-react-native'
 import { isAddress, type Address } from '@solana/kit'
 import { TEST_USD_MINT, type Event as EventAccount } from '@veni/client'
 import {
@@ -181,6 +181,7 @@ function Detail({ icon, title, children }: { icon: ReactNode; title: string; chi
 }
 
 function HostRow({ event }: { event: EventAccount }) {
+  const router = useRouter()
   const host = useHostPage(event.organizer)
   const people = usePeople([event.organizer])
   let record = ''
@@ -194,13 +195,20 @@ function HostRow({ event }: { event: EventAccount }) {
         : `${past.eventCount} ${past.eventCount === 1 ? 'event' : 'events'} hosted${turnout}`
   }
   return (
-    <View style={{ borderRadius: radius.card, backgroundColor: colors.ink, padding: 16 }} className="flex-row items-center gap-3">
+    <Pressable
+      accessibilityRole="button"
+      accessibilityHint="Opens the host's page"
+      onPress={() => router.push(`/h/${event.organizer}`)}
+      style={{ borderRadius: radius.card, backgroundColor: colors.ink, padding: 16 }}
+      className="flex-row items-center gap-3 active:opacity-90"
+    >
       <Avatar initials={initialsOf(event.details.hostName)} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
         <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
         <Text style={{ ...type.small, color: colors.sky }}>{record || ' '}</Text>
       </View>
-    </View>
+      <ChevronRight color={colors.sky} size={22} />
+    </Pressable>
   )
 }
 
