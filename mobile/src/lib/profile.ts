@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import type { Address } from '@solana/kit'
 import { fetchMaybeStampCount, findStampCountPda } from '@veni/client'
+import { fetchRewardsFor } from '@veni/sdk'
 import { fetchHistory } from './api'
 import { reader } from './balances'
 
@@ -15,6 +16,12 @@ export function useStampCount(wallet: Address | undefined) {
     },
     enabled: Boolean(wallet),
   })
+}
+
+export const rewardsKey = (wallet: Address | undefined) => ['rewards', wallet] as const
+
+export function useRewards(wallet: Address | undefined) {
+  return useQuery({ queryKey: rewardsKey(wallet), queryFn: () => fetchRewardsFor(reader, wallet!), enabled: Boolean(wallet) })
 }
 
 export function useHistory(wallet: Address | undefined) {

@@ -14,6 +14,7 @@ const ALLOWED_METHODS = new Set([
   "getSignatureStatuses",
   "getSlot",
   "getTokenAccountBalance",
+  "getTokenAccountsByOwner",
   "sendTransaction",
   "simulateTransaction",
 ]);
