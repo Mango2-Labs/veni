@@ -5,7 +5,7 @@ import { CityStamp } from './CityStamp'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 /** The six cover colors for events without a poster, as on the website. */
-const COVERS = [
+export const COVERS = [
   { background: colors.ink, color: colors.paper },
   { background: colors.orange, color: colors.ink },
   { background: colors.tealText, color: colors.paper },

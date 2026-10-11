@@ -24,6 +24,19 @@ export const STAGE_LABEL: Record<Stage, string> = {
   cancelled: "Cancelled, refunding",
 };
 
+/** "in 2m 05s" or "2m 05s ago", from the chain's clock. */
+export function relativeTime(target: bigint, now: bigint) {
+  const seconds = Number(target - now);
+  const absolute = Math.abs(seconds);
+  const days = Math.floor(absolute / 86400);
+  const hours = Math.floor((absolute % 86400) / 3600);
+  const minutes = Math.floor((absolute % 3600) / 60);
+  const rest = absolute % 60;
+  const text =
+    days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m ${String(rest).padStart(2, "0")}s`;
+  return seconds >= 0 ? `in ${text}` : `${text} ago`;
+}
+
 /** Both stake tokens are dollars with 6 decimals: "$12.25". */
 export function formatUsd(baseUnits: bigint) {
   return `$${(Number(baseUnits) / 1e6).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
@@ -51,6 +64,21 @@ export function coverIndexOf(seed: string) {
   let hash = 0;
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) % 997;
   return hash % 6;
+}
+
+/** Byte limit for the path after "luma.com/". */
+export const LUMA_SLUG_LIMIT = 64;
+
+/** Letters, digits, "-" and "_" only, so it can't lead anywhere else. */
+const LUMA_SLUG = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+
+export function isLumaSlug(value: unknown): value is string {
+  return typeof value === "string" && value.length <= LUMA_SLUG_LIMIT && LUMA_SLUG.test(value);
+}
+
+/** The event's Luma page, if any. Built here, so it can only lead to Luma. */
+export function lumaLinkOf(event: EventAccount) {
+  return isLumaSlug(event.details.lumaSlug) ? `https://luma.com/${event.details.lumaSlug}` : undefined;
 }
 
 /** A spot on the map, in degrees. */

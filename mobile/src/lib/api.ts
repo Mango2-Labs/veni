@@ -48,3 +48,21 @@ export async function fetchUsernames(wallets: Address[]) {
 export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
+
+export type HostPage = {
+  profile?: { name: string }
+  record: { eventCount: number; guestCount: number; attendedCount: number }
+}
+
+export function fetchHostPage(wallet: Address) {
+  return json<HostPage>(`/api/hosts/${wallet}`)
+}
+
+export async function fetchDescription(event: Address) {
+  return (await json<{ description: string | null }>(`/api/events/${event}/description`)).description
+}
+
+/** The description on the event's Luma page, read through Veni's server. */
+export async function fetchLumaDescription(url: string) {
+  return (await post<{ event?: { description: string } }>('/api/luma', { url })).event?.description
+}

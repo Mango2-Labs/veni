@@ -8,7 +8,7 @@ import { TEST_USD_MINT, USDC_MINT } from "@veni/client";
 import { createVeniClient, fetchTokenBalance } from "@veni/sdk";
 import { BROWSER_RPC_URL, rpc } from "./solana";
 
-export { formatUsd, formatUsdShort, STAGE_LABEL, stageOf, type Stage } from "@veni/sdk";
+export { formatUsd, formatUsdShort, relativeTime, STAGE_LABEL, stageOf, type Stage } from "@veni/sdk";
 
 export const DEVNET = "solana:devnet";
 
@@ -34,19 +34,6 @@ export function tokenLabel(mint: Address) {
 /** The wallet's balance of a token, 0 when it has no account for it. */
 export function tokenBalance(owner: Address, mint: Address) {
   return fetchTokenBalance(veniReader, owner, mint);
-}
-
-/** "in 2m 05s" or "2m 05s ago", from the chain's clock. */
-export function relativeTime(target: bigint, now: bigint) {
-  const seconds = Number(target - now);
-  const absolute = Math.abs(seconds);
-  const days = Math.floor(absolute / 86400);
-  const hours = Math.floor((absolute % 86400) / 3600);
-  const minutes = Math.floor((absolute % 3600) / 60);
-  const rest = absolute % 60;
-  const text =
-    days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m ${String(rest).padStart(2, "0")}s`;
-  return seconds >= 0 ? `in ${text}` : `${text} ago`;
 }
 
 /** Asks the faucet for 50 Test USD, plus SOL if low. Devnet only. */
