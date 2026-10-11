@@ -73,6 +73,8 @@ export type HostedEvent = {
   hostName: string
   city: string
   venue: string
+  /** A Luma poster's link, or empty. */
+  cover: string
   startsAt: number
   guestCount: number
   attendedCount: number
