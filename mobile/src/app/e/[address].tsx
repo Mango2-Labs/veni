@@ -10,10 +10,12 @@ import { TEST_USD_MINT, type Event as EventAccount } from '@veni/client'
 import {
   coverIndexOf,
   coverOf,
+  decodeCheckInCode,
   describeError,
   fetchTokenBalance,
   formatUsd,
   formatUsdShort,
+  getCheckInWithCodeInstructions,
   locationOf,
   lumaLinkOf,
   mapsLink,
@@ -29,6 +31,7 @@ import { Chip } from '@/components/Chip'
 import { TypeLabels } from '@/components/TypeLabels'
 import { CityStamp } from '@/components/CityStamp'
 import { COVERS, initialsOf } from '@/components/EventCard'
+import { DoorScanner } from '@/components/DoorScanner'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
 import { requestTestFunds } from '@/lib/api'
 import { reader, tokenLabel } from '@/lib/balances'
@@ -298,6 +301,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
   const [busy, setBusy] = useState<string>()
   const [message, setMessage] = useState<{ ok: boolean; text: string }>()
   const [noticeOpen, setNoticeOpen] = useState(false)
+  const [scanning, setScanning] = useState(false)
   if (!wallet || !client) return null
 
   const stage = stageOf(event, now)
@@ -330,6 +334,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
       queryClient.invalidateQueries({ queryKey: eventKey(address) })
       queryClient.invalidateQueries({ queryKey: ['token', wallet] })
       queryClient.invalidateQueries({ queryKey: ['balances', wallet] })
+      queryClient.invalidateQueries({ queryKey: ['going', wallet] })
     }
   }
 
@@ -411,9 +416,27 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
       {myApplication && stage !== 'open' ? <Note>Not picked. Your {formatUsd(total)} is on its way back.</Note> : null}
 
       {going ? (
-        <Note>
-          <Text style={{ fontFamily: fonts.bold, color: colors.ink }}>You're going.</Text> At the door, scan the code to check in.
-        </Note>
+        <>
+          <Note>
+            <Text style={{ fontFamily: fonts.bold, color: colors.ink }}>You're going.</Text> At the door, scan the code to check in.
+          </Note>
+          <Button label="Scan the door code" busy={busy === 'checkIn'} disabled={busy !== undefined} onPress={() => setScanning(true)} />
+          <DoorScanner
+            open={scanning}
+            onCancel={() => setScanning(false)}
+            onRead={(text) => {
+              setScanning(false)
+              run('checkIn', async () => {
+                const code = decodeCheckInCode(text)
+                if (code.event !== address) throw new Error('That code is for another event. Scan the code at this door.')
+                if (code.signer !== terms.doorKey && code.signer !== event.organizer) {
+                  throw new Error("That code wasn't made by this event's door. Scan the code on the door screen.")
+                }
+                await client.sendTransaction(await getCheckInWithCodeInstructions(code, client.identity))
+              })
+            }}
+          />
+        </>
       ) : null}
       {myGuest?.data.hasAttended && !refundsAll ? <Note>You're checked in. Your stake comes back after the event.</Note> : null}
       {missed ? <Note bad>You missed it. Your stake goes to those who came.</Note> : null}

@@ -2,13 +2,11 @@ import { useMemo, useState } from 'react'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Plus, Search, X } from 'lucide-react-native'
-import type { Address } from '@solana/kit'
 import { describeError, type EventCardData } from '@veni/sdk'
 import { Button } from '@/components/Button'
-import { EventCard } from '@/components/EventCard'
+import { EventList } from '@/components/EventList'
 import { TabScreen } from '@/components/Screen'
 import { useEventCards } from '@/lib/events'
-import { photoUrl, usePeople } from '@/lib/people'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 export default function Explore() {
@@ -19,7 +17,6 @@ export default function Explore() {
   const [query, setQuery] = useState('')
   const cards = useMemo(() => events.data ?? [], [events.data])
   const cities = useMemo(() => [...new Set(cards.map((card) => card.city))], [cards])
-  const hosts = usePeople(cards.flatMap((card) => (card.organizer ? [card.organizer as Address] : [])))
   const words = searchWords(query)
   const shown = cards.filter((card) => (!city || card.city === city) && matches(card, words))
 
@@ -105,13 +102,7 @@ export default function Explore() {
         </Text>
       ) : null}
 
-      {shown.map((card) => (
-        <EventCard
-          key={card.key}
-          event={card}
-          hostPhoto={card.organizer ? photoUrl(card.organizer, hosts.data?.photos?.[card.organizer]) : undefined}
-          onPress={card.href ? () => router.push(card.href as `/e/${string}`) : undefined} />
-      ))}
+      <EventList cards={shown} />
 
       {events.data ? (
         <Pressable

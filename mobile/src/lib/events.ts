@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchAllMaybeEvent } from '@veni/client'
-import { cardOfEvent, chainTime, exampleEvents, fetchEventAddresses } from '@veni/sdk'
+import { fetchEncodedAccounts } from '@solana/kit'
+import { decodeEvent, fetchAllMaybeEvent } from '@veni/client'
+import { cardOfEvent, chainTime, EVENT_ACCOUNT_SIZE, exampleEvents, fetchEventAddresses, fetchGuestsOfWallet } from '@veni/sdk'
 import { reader } from './balances'
+import { useWallet } from './wallet'
 
 const DAY_SECONDS = 86_400n
 
@@ -20,5 +22,24 @@ export function useEventCards() {
       return [...live, ...exampleEvents(today)]
     },
     refetchInterval: 15_000,
+  })
+}
+
+/** Events the connected wallet signed up for, soonest first. */
+export function useMyEventCards() {
+  const { account } = useWallet()
+  const wallet = account?.address
+  return useQuery({
+    queryKey: ['going', wallet],
+    queryFn: async () => {
+      const signUps = await fetchGuestsOfWallet(reader, wallet!)
+      const [accounts, now] = await Promise.all([fetchEncodedAccounts(reader.rpc, signUps.map(({ data }) => data.event)), chainTime(reader)])
+      // Skips events from older program versions.
+      return accounts
+        .flatMap((account) => (account.exists && account.data.length === EVENT_ACCOUNT_SIZE ? [decodeEvent(account)] : []))
+        .sort((a, b) => Number(a.data.terms.rsvpEndsAt - b.data.terms.rsvpEndsAt))
+        .map(({ address, data }) => cardOfEvent(address, data, now))
+    },
+    enabled: Boolean(wallet),
   })
 }
