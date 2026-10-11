@@ -2,6 +2,7 @@ import { Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { describeError } from '@veni/sdk'
 import { Button } from '@/components/Button'
+import { EmptyState } from '@/components/EmptyState'
 import { EventList } from '@/components/EventList'
 import { TabScreen } from '@/components/Screen'
 import { useMyEventCards } from '@/lib/events'
@@ -19,12 +20,7 @@ export default function Going() {
           <Button label="Try again" variant="secondary" onPress={() => events.refetch()} />
         </View>
       ) : null}
-      {events.data?.length === 0 ? (
-        <View className="gap-3">
-          <Text style={type.body}>Nothing yet.</Text>
-          <Button label="Find an event" onPress={() => router.navigate('/explore')} />
-        </View>
-      ) : null}
+      {events.data?.length === 0 ? <EmptyState title="Nothing yet" action="Find an event" onPress={() => router.navigate('/explore')} /> : null}
       {events.data ? <EventList cards={events.data} /> : null}
     </TabScreen>
   )
