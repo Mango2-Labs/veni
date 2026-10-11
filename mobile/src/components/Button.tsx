@@ -7,9 +7,10 @@ type Props = {
   variant?: 'primary' | 'secondary'
   busy?: boolean
   disabled?: boolean
+  compact?: boolean
 }
 
-export function Button({ label, onPress, variant = 'primary', busy = false, disabled = false }: Props) {
+export function Button({ label, onPress, variant = 'primary', busy = false, disabled = false, compact = false }: Props) {
   const primary = variant === 'primary'
   return (
     <Pressable
@@ -18,12 +19,12 @@ export function Button({ label, onPress, variant = 'primary', busy = false, disa
       disabled={disabled || busy}
       onPress={onPress}
       style={{ borderRadius: radius.button }}
-      className={`min-h-14 flex-row items-center justify-center px-6 ${primary ? 'bg-orange active:bg-orange-dk' : 'border-2 border-ink bg-paper active:bg-sky'} ${disabled ? 'opacity-50' : ''}`}
+      className={`${compact ? 'min-h-10 px-4' : 'min-h-14 px-6'} flex-row items-center justify-center ${primary ? 'bg-orange active:bg-orange-dk' : 'border-2 border-ink bg-paper active:bg-sky'} ${disabled ? 'opacity-50' : ''}`}
     >
       {busy ? (
         <ActivityIndicator color={colors.ink} />
       ) : (
-        <Text style={{ fontFamily: fonts.heavy, fontSize: 16, color: colors.ink }}>{label}</Text>
+        <Text style={{ fontFamily: fonts.heavy, fontSize: compact ? 14 : 16, color: colors.ink }}>{label}</Text>
       )}
     </Pressable>
   )

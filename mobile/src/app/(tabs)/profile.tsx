@@ -1,17 +1,17 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Address } from '@solana/kit'
 import { Camera, Check } from 'lucide-react-native'
-import { formatUsd, formatUsdShort, stampDateOf } from '@veni/sdk'
+import { formatUsd, formatUsdShort, SKR_MILESTONES, SKR_PER_STAMP_AFTER_MILESTONES, skrEarnedBy, stampDateOf } from '@veni/sdk'
 import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { CityStamp } from '@/components/CityStamp'
 import { TabScreen } from '@/components/Screen'
-import { requestTestFunds, type HistoryEvent } from '@/lib/api'
+import { claimSkr, requestTestFunds, type HistoryEvent } from '@/lib/api'
 import { balancesKey, useWalletBalances } from '@/lib/balances'
 import { photoUrl } from '@/lib/people'
-import { useHistory, useStampCount } from '@/lib/profile'
+import { rewardsKey, useHistory, useRewards, useStampCount } from '@/lib/profile'
 import { pickAndSavePhoto } from '@/lib/photos'
 import { myUsernameKey, useMyUsername } from '@/lib/username'
 import { useWallet } from '@/lib/wallet'
@@ -24,11 +24,13 @@ export default function Profile() {
   const stamps = useStampCount(account?.address)
   const history = useHistory(account?.address)
   const balances = useWalletBalances()
+  const rewards = useRewards(account?.address)
   const [tab, setTab] = useState<'past' | 'rewards'>('past')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string>()
   if (!account) return null
   const earned = BigInt(history.data?.pages[0]?.earned ?? 0)
+  const skrOwed = rewards.data?.hasSeeker ? skrEarnedBy(stamps.data ?? 0) - rewards.data.claimed : 0
 
   async function changePhoto() {
     setSaving(true)
@@ -53,6 +55,7 @@ export default function Profile() {
         stamps.refetch()
         history.refetch()
         balances.refetch()
+        rewards.refetch()
       }}
     >
       <View className="flex-row items-center" style={{ gap: 14 }}>
@@ -83,8 +86,12 @@ export default function Profile() {
       </View>
       {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
       <Balance wallet={account.address} total={balances.data?.dollars.reduce((sum, { amount }) => sum + amount, 0n)} failed={balances.isError} />
-      <Tabs value={tab} onChange={setTab} />
-      {tab === 'past' ? <PastEvents history={history} /> : <Rewards stamps={stamps.data ?? 0} />}
+      <Tabs value={tab} onChange={setTab} rewardToClaim={skrOwed > 0} />
+      {tab === 'past' ? (
+        <PastEvents history={history} />
+      ) : (
+        <Rewards wallet={account.address} stamps={stamps.data ?? 0} hasSeeker={rewards.data?.hasSeeker} claimed={rewards.data?.claimed ?? 0} />
+      )}
     </TabScreen>
   )
 }
@@ -136,7 +143,7 @@ function Balance({ wallet, total, failed }: { wallet: Address; total: bigint | u
   )
 }
 
-function Tabs({ value, onChange }: { value: 'past' | 'rewards'; onChange: (value: 'past' | 'rewards') => void }) {
+function Tabs({ value, onChange, rewardToClaim }: { value: 'past' | 'rewards'; onChange: (value: 'past' | 'rewards') => void; rewardToClaim: boolean }) {
   return (
     <View accessibilityRole="tablist" className="flex-row bg-sky" style={{ borderRadius: radius.button, padding: 4, gap: 4 }}>
       {(
@@ -154,7 +161,12 @@ function Tabs({ value, onChange }: { value: 'past' | 'rewards'; onChange: (value
             onPress={() => onChange(key)}
             style={{ flex: 1, minHeight: 44, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.paper : 'transparent' }}
           >
-            <Text style={{ fontFamily: selected ? fonts.heavy : fonts.bold, fontSize: 14, color: selected ? colors.ink : colors.ink2 }}>{label}</Text>
+            <View className="flex-row items-center" style={{ gap: 6 }}>
+              <Text style={{ fontFamily: selected ? fonts.heavy : fonts.bold, fontSize: 14, color: selected ? colors.ink : colors.ink2 }}>{label}</Text>
+              {key === 'rewards' && rewardToClaim ? (
+                <View accessibilityLabel="Reward to claim" style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.orange }} />
+              ) : null}
+            </View>
           </Pressable>
         )
       })}
@@ -224,40 +236,82 @@ function PastEventRow({ event, color }: { event: HistoryEvent; color: string }) 
   )
 }
 
-// SKR for reaching each stamp count, then 10 SKR a stamp. Claiming comes later.
-const MILESTONES = [
-  [1, 25],
-  [5, 75],
-  [10, 150],
-  [15, 250],
-  [20, 500],
-] as const
+function Rewards({ wallet, stamps, hasSeeker, claimed }: { wallet: Address; stamps: number; hasSeeker: boolean | undefined; claimed: number }) {
+  const queryClient = useQueryClient()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string>()
+  const owed = skrEarnedBy(stamps) - claimed
+  const next = SKR_MILESTONES.find(([at]) => at > stamps)?.[0]
+  const last = SKR_MILESTONES[SKR_MILESTONES.length - 1][0]
+  let total = 0
+  let offered = false
 
-function Rewards({ stamps }: { stamps: number }) {
-  const next = MILESTONES.find(([at]) => at > stamps)?.[0]
+  async function claim() {
+    setBusy(true)
+    setError(undefined)
+    try {
+      await claimSkr(wallet)
+      await queryClient.invalidateQueries({ queryKey: rewardsKey(wallet) })
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // One button, on the first reward not yet claimed, takes everything owed.
+  function claimButton(isClaimed: boolean) {
+    if (isClaimed || offered || !hasSeeker || owed <= 0) return undefined
+    offered = true
+    return <Button label={`Claim ${owed} SKR`} compact busy={busy} onPress={claim} />
+  }
+
   return (
     <View>
       <Text accessibilityRole="header" style={{ ...type.heading, marginBottom: 4 }}>
         Milestones
       </Text>
-      {MILESTONES.map(([at, skr]) => (
-        <Milestone
-          key={at}
-          label={`${at} ${at === 1 ? 'stamp' : 'stamps'}`}
-          skr={`${skr} SKR`}
-          state={at <= stamps ? 'reached' : at === next ? 'next' : 'locked'}
-          note={at === next ? `${at - stamps} more to go` : undefined}
-        />
-      ))}
-      <Milestone label="Every stamp after 20" skr="+10 SKR" state={stamps > 20 ? 'reached' : 'locked'} />
+      {hasSeeker === false ? <Text style={type.small}>Claiming SKR needs a Seeker Genesis Token in this wallet.</Text> : null}
+      {error ? <Text accessibilityRole="alert" style={{ ...type.small, color: colors.orangeText }}>{error}</Text> : null}
+      {SKR_MILESTONES.map(([at, skr]) => {
+        total += skr
+        const reached = at <= stamps
+        const isClaimed = reached && total <= claimed
+        return (
+          <Milestone
+            key={at}
+            label={`${at} ${at === 1 ? 'stamp' : 'stamps'}`}
+            skr={`${skr} SKR`}
+            state={reached ? 'reached' : at === next ? 'next' : 'locked'}
+            note={isClaimed ? 'Claimed' : at === next ? `${at - stamps} more to go` : undefined}
+            action={reached ? claimButton(isClaimed) : undefined}
+          />
+        )
+      })}
+      <Milestone
+        label={`Every stamp after ${last}`}
+        skr={`+${SKR_PER_STAMP_AFTER_MILESTONES} SKR`}
+        state={stamps > last ? 'reached' : 'locked'}
+        note={stamps > last && owed <= 0 ? 'Claimed' : undefined}
+        action={stamps > last ? claimButton(owed <= 0) : undefined}
+      />
+      {hasSeeker ? (
+        <View className="flex-row items-center justify-between border border-line" style={{ borderRadius: radius.card, padding: 16, marginTop: 16 }}>
+          <Text style={{ ...type.small, color: colors.ink2 }}>Claimed so far</Text>
+          <Text style={{ fontFamily: fonts.display, fontSize: 18, color: colors.ink }}>{claimed} SKR</Text>
+        </View>
+      ) : null}
     </View>
   )
 }
 
-function Milestone({ label, skr, state, note }: { label: string; skr: string; state: 'reached' | 'next' | 'locked'; note?: string }) {
+function Milestone({ label, skr, state, note, action }: { label: string; skr: string; state: 'reached' | 'next' | 'locked'; note?: string; action?: ReactNode }) {
   const ink = state === 'locked' ? colors.muted : colors.ink
   return (
-    <View accessible accessibilityLabel={`${label}: ${skr}${state === 'reached' ? ', reached' : ''}${note ? `, ${note}` : ''}`} className="flex-row items-center border-b border-line" style={{ gap: 14, paddingVertical: 12 }}>
+    <View
+      accessible={!action}
+      accessibilityLabel={action ? undefined : `${label}: ${skr}${state === 'reached' ? ', reached' : ''}${note ? `, ${note}` : ''}`}
+      className="flex-row items-center border-b border-line" style={{ gap: 14, paddingVertical: 12 }}>
       <View
         style={{
           width: 40,
@@ -275,9 +329,9 @@ function Milestone({ label, skr, state, note }: { label: string; skr: string; st
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ ...type.strong, fontSize: 15, color: ink }}>{label}</Text>
-        {note ? <Text style={{ ...type.small, fontFamily: fonts.bold, color: colors.ink2 }}>{note}</Text> : null}
+        {note ? <Text style={{ ...type.small, fontFamily: fonts.bold, color: state === 'reached' ? colors.tealText : colors.ink2 }}>{note}</Text> : null}
       </View>
-      <Text style={{ fontFamily: fonts.display, fontSize: 15, color: ink }}>{skr}</Text>
+      {action ?? <Text style={{ fontFamily: fonts.display, fontSize: 15, color: ink }}>{skr}</Text>}
     </View>
   )
 }

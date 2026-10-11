@@ -62,6 +62,15 @@ export function fetchHistory(wallet: Address, offset: number) {
   return json<{ events: HistoryEvent[]; earned: string; hasMore: boolean }>(`/api/me/history?wallet=${wallet}&offset=${offset}`)
 }
 
+/** Whether the wallet holds a Seeker Genesis Token, and how much SKR that Seeker has claimed. */
+export function fetchRewards(wallet: Address) {
+  return json<{ hasSeeker: boolean; claimed: number }>(`/api/rewards?wallet=${wallet}`)
+}
+
+export function claimSkr(wallet: Address) {
+  return post<{ claimed: number }>('/api/rewards', { wallet })
+}
+
 export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
