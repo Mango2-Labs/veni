@@ -30,6 +30,7 @@ import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { TypeLabels } from '@/components/TypeLabels'
 import { CityStamp } from '@/components/CityStamp'
+import { MapPreview } from '@/components/MapPreview'
 import { COVERS, initialsOf } from '@/components/EventCard'
 import { DoorScanner } from '@/components/DoorScanner'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
@@ -149,6 +150,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
           {terms.requiresApproval ? ` · ${event.applicantCount} waiting for approval` : ''}
         </Detail>
       </View>
+      {location ? <MapPreview point={location} /> : null}
 
       {description.data ? <Text style={type.body}>{description.data}</Text> : null}
       {luma ? (
