@@ -191,7 +191,7 @@ function HostRow({ event }: { event: EventAccount }) {
   }
   return (
     <View style={{ borderRadius: radius.card, backgroundColor: colors.ink, padding: 16 }} className="flex-row items-center gap-3">
-      <Avatar initials={initials} photo={photoUrl(event.organizer, people.data?.photos[event.organizer])} size={48} />
+      <Avatar initials={initials} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
         <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
         <Text style={{ ...type.small, color: colors.sky }}>{record || ' '}</Text>
@@ -215,7 +215,7 @@ function Guests({ snapshot }: { snapshot: Snapshot }) {
         <Text style={type.small}>{event.terms.requiresApproval ? 'Nobody is approved yet.' : 'Nobody has signed up yet.'}</Text>
       ) : null}
       {approved.map(({ address: key, data: { wallet, hasAttended } }) => {
-        const username = people.data?.usernames[wallet]
+        const username = people.data?.usernames?.[wallet]
         const [label, tone] = hasAttended
           ? ['Checked in', 'stage-running']
           : stage === 'open' || stage === 'running'
@@ -225,7 +225,7 @@ function Guests({ snapshot }: { snapshot: Snapshot }) {
               : ['Missed', 'stage-cancelled']
         return (
           <View key={key} className="flex-row items-center gap-3" style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 10 }}>
-            <Avatar username={username} photo={photoUrl(wallet, people.data?.photos[wallet])} size={32} />
+            <Avatar username={username} photo={photoUrl(wallet, people.data?.photos?.[wallet])} size={32} />
             <Text style={{ ...type.strong, flex: 1 }} numberOfLines={1}>
               {username ?? shortAddress(wallet)}
               {wallet === account?.address ? <Text style={type.small}> (you)</Text> : null}
