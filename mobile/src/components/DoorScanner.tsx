@@ -27,7 +27,7 @@ export function DoorScanner({ open, onRead, onCancel }: { open: boolean; onRead:
           />
         ) : (
           <View className="flex-1 justify-center gap-4 px-6">
-            <Text style={{ ...type.title, color: colors.paper }}>Scan the door code</Text>
+            <Text style={{ ...type.title, color: colors.paper }}>Scan the check-in code</Text>
             <Text style={{ ...type.body, color: colors.sky }}>Veni needs the camera to read the code on the door screen.</Text>
             {permission?.canAskAgain === false ? null : <Button label="Allow the camera" onPress={requestPermission} />}
           </View>
