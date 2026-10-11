@@ -1,0 +1,35 @@
+# Moves devnet events along every 5 minutes: settles them, pays guests and hosts, archives and closes them.
+name: Crank
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: crank
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  crank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      # Errors name the RPC's host, which is the provider's account name.
+      - name: Hide the RPC host
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+        run: '[ -z "$RPC_URL" ] || echo "::add-mask::$(echo "$RPC_URL" | sed -E "s#^[a-z]+://([^/?]+).*#\1#")"'
+      - run: bun run crank
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          CRANK_KEYPAIR: ${{ secrets.CRANK_KEYPAIR }}
+          ARCHIVE_URL: https://veni-phi.vercel.app/api/archive
