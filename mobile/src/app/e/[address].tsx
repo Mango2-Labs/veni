@@ -38,6 +38,7 @@ import { requestTestFunds } from '@/lib/api'
 import { reader, tokenLabel } from '@/lib/balances'
 import { eventKey, useDescription, useEventSnapshot, useHostPage } from '@/lib/event'
 import { photoUrl, usePeople } from '@/lib/people'
+import { useStampCount } from '@/lib/profile'
 import { useVeniClient, useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
@@ -103,6 +104,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
   const location = locationOf(event)
   const luma = lumaLinkOf(event)
   const description = useDescription(address, event)
+  const { account } = useWallet()
   const startsAt = new Date(Number(terms.rsvpEndsAt) * 1000)
   const doorOpen = stage === 'open' || stage === 'running'
 
@@ -159,7 +161,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
         </Text>
       ) : null}
 
-      <StakeCard event={event} />
+      {account?.address === event.organizer ? null : <StakeCard event={event} />}
       <GuestActions address={address} snapshot={snapshot} />
       <Guests snapshot={snapshot} />
     </ScrollView>
@@ -360,6 +362,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
         <>
           <Text style={type.strong}>You're hosting this event.</Text>
           {stage === 'open' || stage === 'running' ? <Button label="Open door mode" onPress={() => router.push(`/door/${address}`)} /> : null}
+          {terms.requiresApproval ? <Applications address={address} snapshot={snapshot} busy={busy} run={run} /> : null}
         </>
       ) : null}
 
@@ -468,6 +471,97 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
         </Text>
       ) : null}
     </View>
+  )
+}
+
+/** The host's review queue: each application, with how many Veni events the applicant came to. */
+function Applications({
+  address,
+  snapshot,
+  busy,
+  run,
+}: {
+  address: Address
+  snapshot: Snapshot
+  busy?: string
+  run: (action: string, work: () => Promise<string | void>) => void
+}) {
+  const { event, guests, now } = snapshot
+  const client = useVeniClient()
+  const applicants = guests.filter((guest) => !guest.data.isApproved)
+  const people = usePeople(applicants.map((guest) => guest.data.wallet))
+  if (!client) return null
+  const isOpen = stageOf(event, now) === 'open'
+  const isFull = event.guestCount >= event.terms.capacity
+  return (
+    <View style={{ gap: 10 }}>
+      <View className="flex-row items-baseline justify-between">
+        <Text accessibilityRole="header" style={type.heading}>
+          Applications
+        </Text>
+        <Text style={type.small}>
+          {event.guestCount} of {event.terms.capacity} seats filled
+        </Text>
+      </View>
+      {applicants.length === 0 ? <Text style={type.small}>{isOpen ? 'No applications waiting.' : 'Applications are closed.'}</Text> : null}
+      {applicants.map(({ address: guest, data: { wallet } }) => {
+        const username = people.data?.usernames?.[wallet]
+        const name = username ?? shortAddress(wallet)
+        return (
+          <View key={guest} style={{ borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 12, gap: 10 }}>
+            <View className="flex-row items-center gap-3">
+              <Avatar username={username} photo={photoUrl(wallet, people.data?.photos?.[wallet])} size={36} />
+              <View className="flex-1">
+                <Text style={type.strong} numberOfLines={1}>
+                  {name}
+                </Text>
+                <ApplicantRecord wallet={wallet} />
+              </View>
+            </View>
+            {isOpen ? (
+              <View className="flex-row" style={{ gap: 8 }}>
+                <Button
+                  label="Approve"
+                  compact
+                  busy={busy === `approve-${guest}`}
+                  disabled={busy !== undefined || isFull}
+                  onPress={() =>
+                    run(`approve-${guest}`, async () => {
+                      await client.veni.instructions.approveApplication({ organizer: client.identity, event: address, guest }).sendTransaction()
+                      return `Approved ${name}.`
+                    })
+                  }
+                />
+                <Button
+                  label="Decline"
+                  variant="secondary"
+                  compact
+                  busy={busy === `decline-${guest}`}
+                  disabled={busy !== undefined}
+                  onPress={() =>
+                    run(`decline-${guest}`, async () => {
+                      await client.veni.instructions
+                        .removeApplication({ remover: client.identity, event: address, wallet, stakeMint: event.stakeMint })
+                        .sendTransaction()
+                      return `Declined ${name}. Their ${formatUsd(totalOf(event))} is back with them.`
+                    })
+                  }
+                />
+              </View>
+            ) : null}
+          </View>
+        )
+      })}
+      {isOpen && isFull && applicants.length > 0 ? <Text style={type.small}>All seats taken.</Text> : null}
+      {!isOpen && applicants.length > 0 ? <Text style={type.small}>Sign-ups have closed. These stakes go back.</Text> : null}
+    </View>
+  )
+}
+
+function ApplicantRecord({ wallet }: { wallet: Address }) {
+  const { data: count } = useStampCount(wallet)
+  return (
+    <Text style={type.small}>{count === undefined ? ' ' : count === 0 ? 'First event on Veni' : `${count} ${count === 1 ? 'event' : 'events'} attended`}</Text>
   )
 }
 
