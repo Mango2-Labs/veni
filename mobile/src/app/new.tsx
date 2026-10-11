@@ -1,19 +1,33 @@
 import { useState, type ComponentProps } from 'react'
-import { KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { ChevronLeft } from 'lucide-react-native'
 import { TEST_USD_MINT } from '@veni/client'
-import { chainTime, describeError, fitBytes, toGeoPoint, type MapPoint } from '@veni/sdk'
+import { getBase64Decoder, getUtf8Encoder } from '@solana/kit'
+import {
+  chainTime,
+  describeError,
+  EVENT_CATEGORIES,
+  eventCategoryMessage,
+  fitBytes,
+  isLumaSlug,
+  toGeoPoint,
+  type EventCategory,
+  type LumaEvent,
+  type MapPoint,
+} from '@veni/sdk'
 import { Button } from '@/components/Button'
+import { Filter } from '@/components/Filter'
 import { MapPreview } from '@/components/MapPreview'
 import { PlaceSearch } from '@/components/PlaceSearch'
 import { reader } from '@/lib/balances'
 import { doorKeyFor } from '@/lib/door-key'
 import { useMyUsername } from '@/lib/username'
-import { useVeniClient } from '@/lib/wallet'
+import { fetchLumaEvent, saveCategory } from '@/lib/api'
+import { useVeniClient, useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 const HOUR_MS = 3_600_000
@@ -31,14 +45,32 @@ export default function NewEvent() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const client = useVeniClient()
+  const { signMessages } = useWallet()
+  const [category, setCategory] = useState<EventCategory>('Meetup')
   const { data: me } = useMyUsername()
   const [form, setForm] = useState({ title: '', city: '', venue: '', stake: '5', spots: '30' })
   const [startsAt, setStartsAt] = useState(defaultStart)
   const [endsAt, setEndsAt] = useState(() => new Date(startsAt.getTime() + 2 * HOUR_MS))
   const [point, setPoint] = useState<MapPoint>()
+  const [cover, setCover] = useState<string>()
+  const [lumaSlug, setLumaSlug] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
   const set = (field: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [field]: value }))
+
+  /** Fills the form from the host's Luma event, with Luma's times while they're still ahead. */
+  function fillFromLuma(event: LumaEvent) {
+    setForm((current) => ({ ...current, title: event.title, city: event.city, venue: event.venue }))
+    setPoint(event.location)
+    setCover(event.cover)
+    setLumaSlug(event.lumaSlug)
+    const start = event.startsAt ? new Date(event.startsAt) : undefined
+    const end = event.endsAt ? new Date(event.endsAt) : undefined
+    if (start && end && start.getTime() > Date.now() && end > start) {
+      setStartsAt(start)
+      setEndsAt(end)
+    }
+  }
 
   /** Moves both times to the picked day, keeping the hours. */
   function pickDay() {
@@ -115,9 +147,22 @@ export default function NewEvent() {
             doorKey: doorKey.address,
             title,
           },
-          details: { hostName: me?.username ?? 'Host', city, venue, cover: '', lumaSlug: '', location: point ? toGeoPoint(point) : null },
+          details: {
+            hostName: me?.username ?? 'Host',
+            city,
+            venue,
+            cover: cover ?? '',
+            lumaSlug: isLumaSlug(lumaSlug) ? lumaSlug : '',
+            location: point ? toGeoPoint(point) : null,
+          },
         })
         .sendTransaction()
+      // A second, free signature saves the category on Veni's site. The event stands either way.
+      const signedAt = new Date().toISOString()
+      try {
+        const [signed] = await signMessages([getUtf8Encoder().encode(eventCategoryMessage({ event, category, signedAt })) as Uint8Array])
+        await saveCategory({ event, category, signedAt, signature: getBase64Decoder().decode(signed.slice(-64)) })
+      } catch {}
       await queryClient.invalidateQueries({ queryKey: ['events'] })
       router.replace(`/e/${event}`)
     } catch (caught) {
@@ -145,7 +190,24 @@ export default function NewEvent() {
           </Text>
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 16 }} keyboardShouldPersistTaps="handled">
+          <LumaImport onImport={fillFromLuma} />
+          {cover ? (
+            <View style={{ gap: 10 }}>
+              <Image accessibilityLabel="Cover from Luma" source={{ uri: cover }} style={{ height: 160, borderRadius: radius.cover, backgroundColor: colors.sky }} resizeMode="cover" />
+              <View style={{ alignSelf: 'flex-start' }}>
+                <Button label="Remove cover" variant="secondary" compact onPress={() => setCover(undefined)} />
+              </View>
+            </View>
+          ) : null}
           <Field label="Name" value={form.title} onChangeText={set('title')} maxLength={64} />
+          <View style={{ gap: 8 }}>
+            <Text style={type.label}>Category</Text>
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {EVENT_CATEGORIES.map((name) => (
+                <Filter key={name} label={name} selected={category === name} onPress={() => setCategory(name)} />
+              ))}
+            </View>
+          </View>
           <Picker label="Date" value={startsAt.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} onPress={pickDay} />
           <View className="flex-row" style={{ gap: 10 }}>
             <Picker label="Starts" value={startsAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} onPress={() => pickTime('start')} half />
@@ -179,6 +241,63 @@ export default function NewEvent() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   )
+}
+
+/** Fills the form from an event the host already runs on Luma. */
+function LumaImport({ onImport }: { onImport: (event: LumaEvent) => void }) {
+  const [link, setLink] = useState('')
+  const [status, setStatus] = useState<{ busy?: boolean; error?: string; note?: string }>({})
+
+  async function importLink() {
+    setStatus({ busy: true })
+    try {
+      const event = await fetchLumaEvent(link.trim())
+      onImport(event)
+      setStatus({ note: importNote(event) })
+    } catch (caught) {
+      setStatus({ error: describeError(caught) })
+    }
+  }
+
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={type.label}>Luma event link</Text>
+      <View className="flex-row" style={{ gap: 10 }}>
+        <TextInput
+          accessibilityLabel="Luma event link"
+          value={link}
+          onChangeText={setLink}
+          placeholder="luma.com/abc123"
+          placeholderTextColor={colors.muted}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          returnKeyType="go"
+          onSubmitEditing={importLink}
+          className="min-h-14 flex-1 border-2 border-line-dk bg-paper px-4"
+          style={{ borderRadius: radius.button, fontFamily: fonts.semibold, fontSize: 17, color: colors.ink }}
+        />
+        <Button label="Import" variant="secondary" onPress={importLink} busy={status.busy} disabled={!link.trim()} />
+      </View>
+      <Text
+        accessibilityRole={status.error ? 'alert' : undefined}
+        style={status.error ? { ...type.small, fontFamily: fonts.semibold, color: colors.orangeText } : type.small}
+      >
+        {status.error ?? status.note ?? 'Already on Luma? Import it to fill in the details.'}
+      </Text>
+    </View>
+  )
+}
+
+/** What's left to fill in after an import. */
+function importNote(event: LumaEvent) {
+  const notes = ['Imported.']
+  const isAhead = event.startsAt !== undefined && Date.parse(event.startsAt) > Date.now()
+  if (event.startsAt && !(isAhead && event.endsAt)) notes.push('Pick new times.')
+  if (event.isOnline) notes.push('Add where people meet.')
+  else if (!event.location) notes.push('Search for the venue.')
+  else if (event.locationIsApproximate) notes.push('Luma hides the address, so check the pin.')
+  return notes.join(' ')
 }
 
 function Picker({ label, value, onPress, half }: { label: string; value: string; onPress: () => void; half?: boolean }) {

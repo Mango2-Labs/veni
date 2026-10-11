@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchEncodedAccounts } from '@solana/kit'
 import { decodeEvent, fetchAllMaybeEvent } from '@veni/client'
 import { cardOfEvent, chainTime, EVENT_ACCOUNT_SIZE, exampleEvents, fetchEventAddresses, fetchGuestsOfWallet } from '@veni/sdk'
+import { fetchCategories } from './api'
 import { reader } from './balances'
 import { useWallet } from './wallet'
 
@@ -17,6 +18,9 @@ export function useEventCards() {
         .flatMap((account) => (account.exists ? [{ address: account.address, event: account.data }] : []))
         .sort((a, b) => Number(b.event.terms.rsvpEndsAt - a.event.terms.rsvpEndsAt))
         .map(({ address, event }) => cardOfEvent(address, event, now))
+      // Categories live on Veni's site; without them, events still list.
+      const categories = await fetchCategories(live.map((card) => card.seed)).catch(() => ({}) as Record<string, undefined>)
+      for (const card of live) card.category = categories[card.seed]
       // Dated by the day, so the examples don't shift as the chain's clock ticks.
       const today = new Date(Number((now / DAY_SECONDS) * DAY_SECONDS) * 1000)
       return [...live, ...exampleEvents(today)]

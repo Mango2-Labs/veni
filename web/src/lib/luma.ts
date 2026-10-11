@@ -1,32 +1,10 @@
 // Imports an event from its Luma link by reading the public page's schema.org
 // data (Luma's API needs a paid plan).
 import { DESCRIPTION_LIMIT } from "./event-description";
+import type { LumaEvent, MapPoint } from "@veni/sdk";
 import { EVENT_LIMITS, fitBytes, isCoverUrl, isLumaSlug } from "./events";
-import type { MapPoint } from "./places";
 
-/** What the host form needs from a Luma event. Any detail Luma doesn't show is "". */
-export type LumaEvent = {
-  url: string;
-  /** The path after "luma.com/", or "". */
-  lumaSlug: string;
-  title: string;
-  host: string;
-  city: string;
-  venue: string;
-  /** Plain text. Never stored on-chain. */
-  description: string;
-  /** ISO 8601 in the event's own offset, such as "2026-10-07T18:30:00.000+02:00". */
-  startsAt?: string;
-  endsAt?: string;
-  isOnline: boolean;
-  /** The poster the host uploaded, at its original size. */
-  cover?: string;
-  /** Where it meets, even when Luma hides the address. */
-  location?: MapPoint;
-  /** True when Luma hides the street address, so the pin may only be near the venue. */
-  locationIsApproximate: boolean;
-};
-
+export type { LumaEvent };
 
 /** The only hosts the server fetches, so a link can't send it elsewhere. */
 const LUMA_HOSTS = new Set(["lu.ma", "www.lu.ma", "luma.com", "www.luma.com"]);

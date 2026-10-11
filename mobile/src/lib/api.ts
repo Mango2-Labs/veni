@@ -1,5 +1,5 @@
 import type { Address } from '@solana/kit'
-import type { PhotoInput, UsernameInput } from '@veni/sdk'
+import type { EventCategory, EventCategoryInput, LumaEvent, PhotoInput, UsernameInput } from '@veni/sdk'
 import { VENI_URL } from './config'
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
@@ -65,6 +65,16 @@ export function fetchHistory(wallet: Address, offset: number) {
   return json<{ events: HistoryEvent[]; earned: string; hasMore: boolean }>(`/api/me/history?wallet=${wallet}&offset=${offset}`)
 }
 
+/** The categories hosts set for these events. Empty on a site that doesn't have them yet. */
+export async function fetchCategories(events: string[]) {
+  if (events.length === 0) return {}
+  return (await json<{ categories?: Record<string, EventCategory> }>(`/api/events/categories?events=${events.join(',')}`)).categories ?? {}
+}
+
+export function saveCategory({ event, ...input }: EventCategoryInput & { signature: string }) {
+  return post<{ saved: true }>(`/api/events/${event}/category`, input)
+}
+
 export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
@@ -98,6 +108,13 @@ export async function fetchDescription(event: Address) {
   return (await json<{ description: string | null }>(`/api/events/${event}/description`)).description
 }
 
+/** Reads a public Luma event page through Veni's site. */
+export async function fetchLumaEvent(url: string) {
+  const { event } = await post<{ event?: LumaEvent }>('/api/luma', { url })
+  if (!event) throw new Error("Couldn't read that Luma page.")
+  return event
+}
+
 export async function fetchLumaDescription(url: string) {
-  return (await post<{ event?: { description: string } }>('/api/luma', { url })).event?.description
+  return (await fetchLumaEvent(url)).description
 }

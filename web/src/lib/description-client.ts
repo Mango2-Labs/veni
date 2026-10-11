@@ -2,6 +2,7 @@
 
 // Reads and saves an event's description through the app's own API.
 import type { Address } from "@solana/kit";
+import { eventCategoryMessage, type EventCategory } from "@veni/sdk";
 import { useJson } from "./archive-client";
 import { eventDescriptionMessage } from "./event-description";
 import { toBase64 } from "./signing";
@@ -26,4 +27,17 @@ export async function saveEventDescription(signMessage: SignMessage, event: Addr
   });
   const body = (await response.json().catch(() => ({}))) as { error?: string };
   if (!response.ok) throw new Error(body.error ?? `Couldn't save the description (error ${response.status}).`);
+}
+
+/** Has the host's wallet sign the category, then saves it. */
+export async function saveEventCategory(signMessage: SignMessage, event: Address, category: EventCategory) {
+  const signedAt = new Date().toISOString();
+  const { signature } = await signMessage({ message: new TextEncoder().encode(eventCategoryMessage({ event, category, signedAt })) });
+  const response = await fetch(`/api/events/${event}/category`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ category, signedAt, signature: toBase64(signature) }),
+  });
+  const body = (await response.json().catch(() => ({}))) as { error?: string };
+  if (!response.ok) throw new Error(body.error ?? `Couldn't save the category (error ${response.status}).`);
 }
