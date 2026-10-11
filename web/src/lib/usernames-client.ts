@@ -10,6 +10,8 @@ import { shortAddress } from "./solana";
 const known = new Map<string, string | null>();
 /** A wallet's photo version, or null once we know it has none. */
 const photos = new Map<string, number | null>();
+/** Whether a wallet is on Veni's verified hosts list. */
+const verified = new Map<string, boolean>();
 const waiting = new Set<string>();
 const listeners = new Set<() => void>();
 let flushTimer: ReturnType<typeof setTimeout> | undefined;
@@ -26,7 +28,7 @@ function notify() {
 }
 
 function request(wallet: string) {
-  if ((known.has(wallet) && photos.has(wallet)) || waiting.has(wallet)) return;
+  if ((known.has(wallet) && photos.has(wallet) && verified.has(wallet)) || waiting.has(wallet)) return;
   waiting.add(wallet);
   flushTimer ??= setTimeout(flush, 20);
 }
@@ -39,11 +41,12 @@ async function flush() {
     const batch = wallets.slice(start, start + BATCH_SIZE);
     try {
       const response = await fetch(`/api/usernames?wallets=${batch.join(",")}`);
-      const body = (await response.json()) as { usernames?: Record<string, string>; photos?: Record<string, number> };
+      const body = (await response.json()) as { usernames?: Record<string, string>; photos?: Record<string, number>; verified?: string[] };
       if (!response.ok || !body.usernames) continue;
       for (const wallet of batch) {
         known.set(wallet, body.usernames[wallet] ?? null);
         photos.set(wallet, body.photos?.[wallet] ?? null);
+        verified.set(wallet, body.verified?.includes(wallet) ?? false);
       }
     } catch {
       // Left unknown, so the next render asks again.
@@ -63,6 +66,19 @@ export function useUsernameOf(wallet: string | undefined) {
     if (wallet) request(wallet);
   }, [wallet, username]);
   return username;
+}
+
+/** Whether Veni verified this wallet as a host: false while loading. */
+export function useIsVerifiedHost(wallet: string | undefined) {
+  const isVerified = useSyncExternalStore(
+    subscribe,
+    () => (wallet ? verified.get(wallet) : undefined),
+    () => undefined,
+  );
+  useEffect(() => {
+    if (wallet) request(wallet);
+  }, [wallet, isVerified]);
+  return isVerified ?? false;
 }
 
 /** The wallet's photo address: undefined while loading, null if it has none. */

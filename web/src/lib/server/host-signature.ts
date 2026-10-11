@@ -38,17 +38,27 @@ export async function checkHostSignature(
   { now = Date.now(), organizerOf = organizerOnChain }: HostSignatureOptions = {},
 ) {
   if (!isAddress(input.event)) throw new Error("That isn't an event address.");
-  const signedAt = Date.parse(input.signedAt);
-  if (Number.isNaN(signedAt) || now - signedAt > MAX_SIGNATURE_AGE_MS || signedAt - now > MAX_CLOCK_AHEAD_MS) {
-    throw new Error(`That signature is too old. Sign again to save ${what}.`);
-  }
+  checkSignedAt(input.signedAt, now, what);
   const organizer = await organizerOf(address(input.event));
-  const signature = Uint8Array.from(Buffer.from(input.signature, "base64"));
-  if (signature.length !== 64) throw new Error("That isn't a wallet signature.");
-  if (!(await verifySignature(await getPublicKeyFromAddress(organizer), signature as SignatureBytes, getUtf8Encoder().encode(message)))) {
+  if (!(await isSignedBy(organizer, input.signature, message))) {
     throw new Error(`Only the event's host can change ${what}. Sign with the wallet that created it.`);
   }
-  return new Date(signedAt).toISOString();
+  return new Date(input.signedAt).toISOString();
+}
+
+/** Throws unless `signedAt` is from the last few minutes. */
+export function checkSignedAt(signedAt: string, now: number, what: string) {
+  const time = Date.parse(signedAt);
+  if (Number.isNaN(time) || now - time > MAX_SIGNATURE_AGE_MS || time - now > MAX_CLOCK_AHEAD_MS) {
+    throw new Error(`That signature is too old. Sign again to save ${what}.`);
+  }
+}
+
+/** Whether `signer`'s wallet made this base64 signature of `message`. */
+export async function isSignedBy(signer: Address, signature: string, message: string) {
+  const bytes = Uint8Array.from(Buffer.from(signature, "base64"));
+  if (bytes.length !== 64) throw new Error("That isn't a wallet signature.");
+  return verifySignature(await getPublicKeyFromAddress(signer), bytes as SignatureBytes, getUtf8Encoder().encode(message));
 }
 
 /** The organizer, read from the chain. Retried briefly, since a new event may not have reached the RPC yet. */

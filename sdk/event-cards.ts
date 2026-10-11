@@ -16,6 +16,8 @@ export type EventCardData = {
   organizer?: string;
   /** Examples only: a bundled host logo. */
   hostLogo?: "monkedao" | "solana" | "superteam-sg" | "superteam-ca";
+  /** Veni checked who the host is: the check beside their name. */
+  hostVerified?: boolean;
   /** "91% of guests show up", when the host has a record. */
   hostRecord?: string;
   when: string;
@@ -92,6 +94,7 @@ const EXAMPLES: Example[] = [
     category: "Conference",
     hostName: "Solana Foundation",
     hostLogo: "solana",
+    hostVerified: true,
     dates: { when: "15–17 Nov", start: new Date(2026, 10, 15) },
     place: "Olympia London",
     city: "London",
@@ -131,6 +134,7 @@ const EXAMPLES: Example[] = [
     category: "Party",
     hostName: "MonkeDAO",
     hostLogo: "monkedao",
+    hostVerified: true,
     inDays: 9,
     time: "19:00",
     place: "Ari",
@@ -145,6 +149,7 @@ const EXAMPLES: Example[] = [
     category: "Conference",
     hostName: "Superteam Singapore",
     hostLogo: "superteam-sg",
+    hostVerified: true,
     inDays: 21,
     time: "09:30",
     place: "Marina Bay",
@@ -158,6 +163,7 @@ const EXAMPLES: Example[] = [
     category: "Conference",
     hostName: "Superteam Canada",
     hostLogo: "superteam-ca",
+    hostVerified: true,
     inDays: 28,
     time: "10:00",
     place: "King West",

@@ -29,6 +29,7 @@ import { Avatar } from '@/components/Avatar'
 import { Button } from '@/components/Button'
 import { Chip } from '@/components/Chip'
 import { TypeLabels } from '@/components/TypeLabels'
+import { VerifiedBadge } from '@/components/VerifiedBadge'
 import { CityStamp } from '@/components/CityStamp'
 import { MapPreview } from '@/components/MapPreview'
 import { COVERS, initialsOf } from '@/components/EventCard'
@@ -206,7 +207,10 @@ function HostRow({ event }: { event: EventAccount }) {
     >
       <Avatar initials={initialsOf(event.details.hostName)} photo={photoUrl(event.organizer, people.data?.photos?.[event.organizer])} size={48} />
       <View className="flex-1">
-        <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
+        <View className="flex-row items-center" style={{ gap: 6 }}>
+          <Text style={{ ...type.strong, color: colors.paper }}>{event.details.hostName}</Text>
+          {people.data?.verified?.includes(event.organizer) ? <VerifiedBadge /> : null}
+        </View>
         {record ? <Text style={{ ...type.small, color: colors.sky }}>{record}</Text> : null}
       </View>
       <ChevronRight color={colors.sky} size={22} />

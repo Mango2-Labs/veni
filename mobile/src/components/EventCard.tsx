@@ -4,6 +4,7 @@ import { Avatar } from './Avatar'
 import { Chip } from './Chip'
 import { TypeLabels } from './TypeLabels'
 import { CityStamp } from './CityStamp'
+import { VerifiedBadge } from './VerifiedBadge'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
 /** "SB" for "Seoul Builders". */
@@ -27,7 +28,17 @@ const HOST_LOGOS = {
   'superteam-ca': require('../../assets/hosts/superteam-ca.png'),
 }
 
-export function EventCard({ event, hostPhoto, onPress }: { event: EventCardData; hostPhoto?: string; onPress?: () => void }) {
+export function EventCard({
+  event,
+  hostPhoto,
+  hostVerified,
+  onPress,
+}: {
+  event: EventCardData
+  hostPhoto?: string
+  hostVerified?: boolean
+  onPress?: () => void
+}) {
   const cover = COVERS[coverIndexOf(event.seed, { paid: Boolean(event.ticket), approval: event.approval })]
   const stake = event.ticket ? `${event.ticket} + ${event.stake} stake` : `${event.stake} stake`
   const content = (
@@ -55,6 +66,7 @@ export function EventCard({ event, hostPhoto, onPress }: { event: EventCardData;
         <View className="flex-row items-center gap-2">
           <Avatar initials={initialsOf(event.hostName)} photo={event.hostLogo ? HOST_LOGOS[event.hostLogo] : hostPhoto} size={28} />
           <Text style={type.strong}>{event.hostName}</Text>
+          {event.hostVerified || hostVerified ? <VerifiedBadge /> : null}
         </View>
         <Text style={{ ...type.small, color: colors.ink2 }}>
           {event.when} · {event.place}

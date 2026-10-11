@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { coverIndexOf, type EventCardData } from "@veni/sdk";
 import { Face } from "@/components/Face";
+import { HostVerifiedBadge } from "@/components/VerifiedBadge";
 import { initialsOf } from "@/lib/host-profile";
 
 export function EventCard({ event }: { event: EventCardData }) {
@@ -17,6 +18,7 @@ export function EventCard({ event }: { event: EventCardData }) {
         <span className="card-host">
           <Face wallet={event.organizer} src={event.hostLogo && `/hosts/${event.hostLogo}.png`} initials={initialsOf(event.hostName)} className="member-face" />
           <b>{event.hostName}</b>
+          <HostVerifiedBadge wallet={event.organizer} isVerified={event.hostVerified} />
         </span>
         <span>{event.when} · {event.place}</span>
         <span className="event-card-tags">

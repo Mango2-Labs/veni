@@ -88,6 +88,14 @@ CREATE TABLE IF NOT EXISTS event_categories (
   signed_at       timestamptz NOT NULL,
   signature       text NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS verified_hosts (
+  wallet          text PRIMARY KEY,
+  name            text NOT NULL,
+  is_verified     boolean NOT NULL,
+  signed_at       timestamptz NOT NULL,
+  signature       text NOT NULL
+);
 `;
 
 let database: Promise<Database> | undefined;
