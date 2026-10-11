@@ -31,7 +31,7 @@ export function PlaceSearch({ id, onPick }: { id: string; onPick: (place: Place)
     setIsSearching(true);
     setStatus("Searching…");
     try {
-      const found = await searchPlaces(text, controller.signal);
+      const found = await searchPlaces(text, { signal: controller.signal, language: navigator.language });
       setPlaces(found);
       setActive(found.length > 0 ? 0 : -1);
       setIsOpen(true);

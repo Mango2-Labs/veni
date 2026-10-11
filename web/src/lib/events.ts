@@ -4,7 +4,7 @@ import type { MaybeEncodedAccount } from "@solana/kit";
 import { EVENT_DISCRIMINATOR, VENI_PROGRAM_ADDRESS } from "@veni/client";
 import { EVENT_ACCOUNT_SIZE } from "@veni/sdk";
 
-export { coverOf, isCoverUrl, isLumaSlug, locationOf, LUMA_SLUG_LIMIT, lumaLinkOf } from "@veni/sdk";
+export { coverOf, fitBytes, isCoverUrl, isLumaSlug, locationOf, LUMA_SLUG_LIMIT, lumaLinkOf } from "@veni/sdk";
 
 /** Byte limits, matching the program's. */
 export const EVENT_LIMITS = { title: 64, host: 40, city: 32, venue: 48 } as const;
@@ -38,14 +38,3 @@ export function checkEventForm(form: { title: string; city: string; venue: strin
   }
 }
 
-/** Cuts text to fit an on-chain byte limit, ending in "…" when anything was cut. */
-export function fitBytes(value: string, limit: number) {
-  const bytes = (part: string) => new TextEncoder().encode(part).length;
-  if (bytes(value) <= limit) return value;
-  let cut = "";
-  for (const char of value) {
-    if (bytes(cut + char + "…") > limit) break;
-    cut += char;
-  }
-  return cut.trimEnd() + "…";
-}
