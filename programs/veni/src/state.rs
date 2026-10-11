@@ -144,6 +144,64 @@ pub struct StampCount {
     pub count: u32,
 }
 
+/// A reward for reaching a stamp count.
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
+pub struct Milestone {
+    pub stamps: u32,
+    /// In the reward token's base units.
+    pub amount: u64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
+pub struct RewardSettings {
+    /// Changes these settings. A Squads multisig before mainnet.
+    pub admin: Pubkey,
+    /// Only holders of a token in this group can claim: Solana Mobile's Seeker
+    /// Genesis Token group on mainnet, a test group on devnet.
+    pub seeker_group: Pubkey,
+    pub milestones: [Milestone; MILESTONE_COUNT],
+    /// Paid for each stamp after the last milestone.
+    pub amount_per_stamp_after: u64,
+    pub is_paused: bool,
+}
+
+impl RewardSettings {
+    /// Everything a stamp count has earned, in base units.
+    pub fn earned_by(&self, stamps: u32) -> u64 {
+        let at_milestones = self
+            .milestones
+            .iter()
+            .filter(|milestone| stamps >= milestone.stamps)
+            .fold(0u64, |sum, milestone| sum.saturating_add(milestone.amount));
+        let after = stamps.saturating_sub(self.milestones[MILESTONE_COUNT - 1].stamps);
+        at_milestones.saturating_add(u64::from(after).saturating_mul(self.amount_per_stamp_after))
+    }
+
+    /// Each milestone needs more stamps than the one before, starting above zero.
+    pub fn has_ordered_milestones(&self) -> bool {
+        self.milestones[0].stamps > 0 && self.milestones.windows(2).all(|pair| pair[0].stamps < pair[1].stamps)
+    }
+}
+
+/// Veni's rewards. Its token account is the vault, which only `claim_rewards`
+/// pays from, so no key can take the rewards.
+#[account]
+#[derive(InitSpace)]
+pub struct Rewards {
+    pub settings: RewardSettings,
+    pub mint: Pubkey,
+    pub bump: u8,
+}
+
+/// What one Seeker has claimed, keyed by its Seeker Genesis Token's mint, so
+/// moving the token to another wallet can't claim again.
+#[account]
+#[derive(InitSpace)]
+pub struct SeekerClaim {
+    pub claimed: u64,
+    pub bump: u8,
+}
+
 /// Logged by `close_guest` for each stamp, so anyone can see which events a
 /// stamp count is made of.
 #[event]
@@ -155,4 +213,34 @@ pub struct Stamped {
     pub attended_count: u16,
     /// The wallet's stamp count, this stamp included.
     pub count: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn settings(stamps: [u32; MILESTONE_COUNT]) -> RewardSettings {
+        let amounts = [25, 75, 150, 250, 500];
+        RewardSettings {
+            admin: Pubkey::default(),
+            seeker_group: Pubkey::default(),
+            milestones: std::array::from_fn(|i| Milestone { stamps: stamps[i], amount: amounts[i] }),
+            amount_per_stamp_after: 10,
+            is_paused: false,
+        }
+    }
+
+    #[test]
+    fn pays_at_each_milestone_then_per_stamp_after_the_last() {
+        let rewards = settings([1, 5, 10, 15, 20]);
+        let earned: Vec<u64> = [0, 1, 4, 5, 20, 22].map(|stamps| rewards.earned_by(stamps)).to_vec();
+        assert_eq!(earned, [0, 25, 25, 100, 1_000, 1_020]);
+    }
+
+    #[test]
+    fn milestones_must_climb_from_above_zero() {
+        assert!(settings([1, 5, 10, 15, 20]).has_ordered_milestones());
+        assert!(!settings([0, 5, 10, 15, 20]).has_ordered_milestones());
+        assert!(!settings([1, 5, 5, 15, 20]).has_ordered_milestones());
+    }
 }

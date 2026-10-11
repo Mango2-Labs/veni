@@ -96,7 +96,7 @@ export function giveUsdc(chain: TestChain, owner: Address, amount: bigint) {
   return giveTokens(chain, owner, USDC_MINT, amount);
 }
 
-function writeAccount(
+export function writeAccount(
   chain: TestChain,
   account: { address: Address; data: ReadonlyUint8Array; programAddress: Address },
 ) {

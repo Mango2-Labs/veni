@@ -9,3 +9,5 @@
 export * from "./eventDetails";
 export * from "./eventTerms";
 export * from "./geoPoint";
+export * from "./milestone";
+export * from "./rewardSettings";

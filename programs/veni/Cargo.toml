@@ -20,11 +20,13 @@ custom-heap = []
 custom-panic = []
 
 [dependencies]
-anchor-lang = { version = "1.2.0", features = ["event-cpi"] }
+anchor-lang = { version = "1.2.0", features = ["event-cpi", "init-if-needed"] }
 anchor-spl = "1.2.0"
 # A check-in reads the organizer's signature from the instruction before it.
 solana-instructions-sysvar = "3.0.1"
 solana-sdk-ids = "3.1.0"
+# Reads which group a Seeker Genesis Token belongs to.
+spl-token-group-interface = "0.7.2"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

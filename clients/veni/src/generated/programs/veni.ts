@@ -37,11 +37,17 @@ import {
 import {
   getEventCodec,
   getGuestCodec,
+  getRewardsCodec,
+  getSeekerClaimCodec,
   getStampCountCodec,
   type Event,
   type EventArgs,
   type Guest,
   type GuestArgs,
+  type Rewards,
+  type RewardsArgs,
+  type SeekerClaim,
+  type SeekerClaimArgs,
   type StampCount,
   type StampCountArgs,
 } from "../accounts";
@@ -50,44 +56,62 @@ import {
   getCancelEventInstruction,
   getCheckInGuestInstruction,
   getCheckInWithCodeInstructionAsync,
+  getClaimRewardsInstructionAsync,
   getCloseEventInstructionAsync,
   getCloseGuestInstructionAsync,
   getCreateEventInstructionAsync,
+  getInitRewardsInstructionAsync,
   getRemoveApplicationInstructionAsync,
   getSettleEventInstructionAsync,
   getSignUpInstructionAsync,
+  getUpdateRewardsInstructionAsync,
   parseApproveApplicationInstruction,
   parseCancelEventInstruction,
   parseCheckInGuestInstruction,
   parseCheckInWithCodeInstruction,
+  parseClaimRewardsInstruction,
   parseCloseEventInstruction,
   parseCloseGuestInstruction,
   parseCreateEventInstruction,
+  parseInitRewardsInstruction,
   parseRemoveApplicationInstruction,
   parseSettleEventInstruction,
   parseSignUpInstruction,
+  parseUpdateRewardsInstruction,
   type ApproveApplicationInput,
   type CancelEventInput,
   type CheckInGuestInput,
   type CheckInWithCodeAsyncInput,
+  type ClaimRewardsAsyncInput,
   type CloseEventAsyncInput,
   type CloseGuestAsyncInput,
   type CreateEventAsyncInput,
+  type InitRewardsAsyncInput,
   type ParsedApproveApplicationInstruction,
   type ParsedCancelEventInstruction,
   type ParsedCheckInGuestInstruction,
   type ParsedCheckInWithCodeInstruction,
+  type ParsedClaimRewardsInstruction,
   type ParsedCloseEventInstruction,
   type ParsedCloseGuestInstruction,
   type ParsedCreateEventInstruction,
+  type ParsedInitRewardsInstruction,
   type ParsedRemoveApplicationInstruction,
   type ParsedSettleEventInstruction,
   type ParsedSignUpInstruction,
+  type ParsedUpdateRewardsInstruction,
   type RemoveApplicationAsyncInput,
   type SettleEventAsyncInput,
   type SignUpAsyncInput,
+  type UpdateRewardsAsyncInput,
 } from "../instructions";
-import { findEventPda, findGuestPda, findStampCountPda } from "../pdas";
+import {
+  findEventPda,
+  findGuestPda,
+  findRewardsPda,
+  findSeekerClaimPda,
+  findStampCountPda,
+} from "../pdas";
 
 export const VENI_PROGRAM_ADDRESS =
   "7oLjHhpFXGq48fGWLWBPwysQJBvbEAyiGF489tXW8kao" as Address<"7oLjHhpFXGq48fGWLWBPwysQJBvbEAyiGF489tXW8kao">;
@@ -95,6 +119,8 @@ export const VENI_PROGRAM_ADDRESS =
 export enum VeniAccount {
   Event,
   Guest,
+  Rewards,
+  SeekerClaim,
   StampCount,
 }
 
@@ -123,6 +149,28 @@ export function identifyVeniAccount(
     )
   ) {
     return VeniAccount.Guest;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([12, 223, 68, 101, 63, 33, 38, 101]),
+      ),
+      0,
+    )
+  ) {
+    return VeniAccount.Rewards;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([74, 16, 177, 137, 119, 217, 47, 236]),
+      ),
+      0,
+    )
+  ) {
+    return VeniAccount.SeekerClaim;
   }
   if (
     containsBytes(
@@ -170,12 +218,15 @@ export enum VeniInstruction {
   CancelEvent,
   CheckInGuest,
   CheckInWithCode,
+  ClaimRewards,
   CloseEvent,
   CloseGuest,
   CreateEvent,
+  InitRewards,
   RemoveApplication,
   SettleEvent,
   SignUp,
+  UpdateRewards,
 }
 
 export function identifyVeniInstruction(
@@ -230,6 +281,17 @@ export function identifyVeniInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([4, 144, 132, 71, 116, 23, 151, 80]),
+      ),
+      0,
+    )
+  ) {
+    return VeniInstruction.ClaimRewards;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([117, 114, 193, 54, 49, 25, 75, 194]),
       ),
       0,
@@ -258,6 +320,17 @@ export function identifyVeniInstruction(
     )
   ) {
     return VeniInstruction.CreateEvent;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([24, 217, 207, 96, 28, 211, 144, 146]),
+      ),
+      0,
+    )
+  ) {
+    return VeniInstruction.InitRewards;
   }
   if (
     containsBytes(
@@ -292,6 +365,17 @@ export function identifyVeniInstruction(
   ) {
     return VeniInstruction.SignUp;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([188, 38, 124, 42, 87, 77, 176, 90]),
+      ),
+      0,
+    )
+  ) {
+    return VeniInstruction.UpdateRewards;
+  }
   throw new SolanaError(
     SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION,
     { instructionData: data, programName: "veni" },
@@ -314,6 +398,9 @@ export type ParsedVeniInstruction<
       instructionType: VeniInstruction.CheckInWithCode;
     } & ParsedCheckInWithCodeInstruction<TProgram>)
   | ({
+      instructionType: VeniInstruction.ClaimRewards;
+    } & ParsedClaimRewardsInstruction<TProgram>)
+  | ({
       instructionType: VeniInstruction.CloseEvent;
     } & ParsedCloseEventInstruction<TProgram>)
   | ({
@@ -323,6 +410,9 @@ export type ParsedVeniInstruction<
       instructionType: VeniInstruction.CreateEvent;
     } & ParsedCreateEventInstruction<TProgram>)
   | ({
+      instructionType: VeniInstruction.InitRewards;
+    } & ParsedInitRewardsInstruction<TProgram>)
+  | ({
       instructionType: VeniInstruction.RemoveApplication;
     } & ParsedRemoveApplicationInstruction<TProgram>)
   | ({
@@ -330,7 +420,10 @@ export type ParsedVeniInstruction<
     } & ParsedSettleEventInstruction<TProgram>)
   | ({
       instructionType: VeniInstruction.SignUp;
-    } & ParsedSignUpInstruction<TProgram>);
+    } & ParsedSignUpInstruction<TProgram>)
+  | ({
+      instructionType: VeniInstruction.UpdateRewards;
+    } & ParsedUpdateRewardsInstruction<TProgram>);
 
 export function parseVeniInstruction<TProgram extends string>(
   instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
@@ -365,6 +458,13 @@ export function parseVeniInstruction<TProgram extends string>(
         ...parseCheckInWithCodeInstruction(instruction),
       };
     }
+    case VeniInstruction.ClaimRewards: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VeniInstruction.ClaimRewards,
+        ...parseClaimRewardsInstruction(instruction),
+      };
+    }
     case VeniInstruction.CloseEvent: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -386,6 +486,13 @@ export function parseVeniInstruction<TProgram extends string>(
         ...parseCreateEventInstruction(instruction),
       };
     }
+    case VeniInstruction.InitRewards: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VeniInstruction.InitRewards,
+        ...parseInitRewardsInstruction(instruction),
+      };
+    }
     case VeniInstruction.RemoveApplication: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -405,6 +512,13 @@ export function parseVeniInstruction<TProgram extends string>(
       return {
         instructionType: VeniInstruction.SignUp,
         ...parseSignUpInstruction(instruction),
+      };
+    }
+    case VeniInstruction.UpdateRewards: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VeniInstruction.UpdateRewards,
+        ...parseUpdateRewardsInstruction(instruction),
       };
     }
     default:
@@ -429,6 +543,10 @@ export type VeniPluginAccounts = {
     SelfFetchFunctions<EventArgs, Event>;
   guest: ReturnType<typeof getGuestCodec> &
     SelfFetchFunctions<GuestArgs, Guest>;
+  rewards: ReturnType<typeof getRewardsCodec> &
+    SelfFetchFunctions<RewardsArgs, Rewards>;
+  seekerClaim: ReturnType<typeof getSeekerClaimCodec> &
+    SelfFetchFunctions<SeekerClaimArgs, SeekerClaim>;
   stampCount: ReturnType<typeof getStampCountCodec> &
     SelfFetchFunctions<StampCountArgs, StampCount>;
 };
@@ -448,6 +566,10 @@ export type VeniPluginInstructions = {
     input: CheckInWithCodeAsyncInput,
   ) => ReturnType<typeof getCheckInWithCodeInstructionAsync> &
     SelfPlanAndSendFunctions;
+  claimRewards: (
+    input: ClaimRewardsAsyncInput,
+  ) => ReturnType<typeof getClaimRewardsInstructionAsync> &
+    SelfPlanAndSendFunctions;
   closeEvent: (
     input: CloseEventAsyncInput,
   ) => ReturnType<typeof getCloseEventInstructionAsync> &
@@ -460,6 +582,10 @@ export type VeniPluginInstructions = {
     input: CreateEventAsyncInput,
   ) => ReturnType<typeof getCreateEventInstructionAsync> &
     SelfPlanAndSendFunctions;
+  initRewards: (
+    input: InitRewardsAsyncInput,
+  ) => ReturnType<typeof getInitRewardsInstructionAsync> &
+    SelfPlanAndSendFunctions;
   removeApplication: (
     input: RemoveApplicationAsyncInput,
   ) => ReturnType<typeof getRemoveApplicationInstructionAsync> &
@@ -471,11 +597,17 @@ export type VeniPluginInstructions = {
   signUp: (
     input: SignUpAsyncInput,
   ) => ReturnType<typeof getSignUpInstructionAsync> & SelfPlanAndSendFunctions;
+  updateRewards: (
+    input: UpdateRewardsAsyncInput,
+  ) => ReturnType<typeof getUpdateRewardsInstructionAsync> &
+    SelfPlanAndSendFunctions;
 };
 
 export type VeniPluginPdas = {
   guest: typeof findGuestPda;
+  rewards: typeof findRewardsPda;
   stampCount: typeof findStampCountPda;
+  seekerClaim: typeof findSeekerClaimPda;
   event: typeof findEventPda;
 };
 
@@ -495,6 +627,8 @@ export function veniProgram() {
         accounts: {
           event: addSelfFetchFunctions(client, getEventCodec()),
           guest: addSelfFetchFunctions(client, getGuestCodec()),
+          rewards: addSelfFetchFunctions(client, getRewardsCodec()),
+          seekerClaim: addSelfFetchFunctions(client, getSeekerClaimCodec()),
           stampCount: addSelfFetchFunctions(client, getStampCountCodec()),
         },
         instructions: {
@@ -518,6 +652,11 @@ export function veniProgram() {
               client,
               getCheckInWithCodeInstructionAsync(input),
             ),
+          claimRewards: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getClaimRewardsInstructionAsync(input),
+            ),
           closeEvent: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -536,6 +675,11 @@ export function veniProgram() {
               client,
               getCreateEventInstructionAsync(input),
             ),
+          initRewards: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getInitRewardsInstructionAsync(input),
+            ),
           removeApplication: (input) =>
             addSelfPlanAndSendFunctions(
               client,
@@ -551,10 +695,17 @@ export function veniProgram() {
               client,
               getSignUpInstructionAsync(input),
             ),
+          updateRewards: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getUpdateRewardsInstructionAsync(input),
+            ),
         },
         pdas: {
           guest: findGuestPda,
+          rewards: findRewardsPda,
           stampCount: findStampCountPda,
+          seekerClaim: findSeekerClaimPda,
           event: findEventPda,
         },
         identifyAccount: identifyVeniAccount,

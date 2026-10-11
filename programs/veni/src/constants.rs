@@ -9,6 +9,14 @@ pub const GUEST_SEED: &[u8] = b"guest";
 #[constant]
 pub const STAMP_COUNT_SEED: &[u8] = b"stamp_count";
 
+#[constant]
+pub const REWARDS_SEED: &[u8] = b"rewards";
+
+#[constant]
+pub const SEEKER_CLAIM_SEED: &[u8] = b"seeker_claim";
+
+pub const MILESTONE_COUNT: usize = 5;
+
 /// Max stake, in whole tokens.
 #[constant]
 pub const MAX_STAKE_TOKENS: u64 = 100;
