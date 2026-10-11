@@ -38,7 +38,7 @@ export async function saveUsername(input: UsernameInput & { signature: string })
 }
 
 export function fetchPeople(wallets: Address[]) {
-  return json<{ usernames: Record<string, string>; photos: Record<string, number> }>(`/api/usernames?wallets=${wallets.join(',')}`)
+  return json<{ usernames: Record<string, string>; photos: Record<string, number>; verified: string[] }>(`/api/usernames?wallets=${wallets.join(',')}`)
 }
 
 export async function savePhoto(input: PhotoInput & { image: string; signature: string }) {
@@ -96,6 +96,7 @@ export type HostedEvent = {
 
 export type HostPage = {
   profile?: { name: string; lumaCalendar: string; registeredAt: string }
+  isVerified?: boolean
   record: { eventCount: number; guestCount: number; attendedCount: number }
   pastEvents: HostedEvent[]
 }

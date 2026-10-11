@@ -57,7 +57,7 @@ export type HostRecord = {
 };
 
 /** A host's public page. `profile` is missing until they register. */
-export type HostPage = { profile?: HostProfile; record: HostRecord; pastEvents: PastEvent[] };
+export type HostPage = { profile?: HostProfile; isVerified: boolean; record: HostRecord; pastEvents: PastEvent[] };
 
 /** "SB" for "Seoul Builders": a host's face until hosts have photos. */
 export function initialsOf(name: string) {

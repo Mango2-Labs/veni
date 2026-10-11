@@ -12,3 +12,4 @@ export * from "./photos";
 export * from "./places";
 export * from "./rewards";
 export * from "./usernames";
+export * from "./verified-hosts";
