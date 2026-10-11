@@ -23,7 +23,7 @@ import {
 } from "@veni/sdk";
 import { AppHeader } from "@/components/AppHeader";
 import { DoorScanner } from "@/components/DoorScanner";
-import { CityStamp, coverClassOf } from "@/components/EventCard";
+import { CityStamp, coverClassOf, TypeChips } from "@/components/EventCard";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";
@@ -245,7 +245,7 @@ function EventView({
         )}
         <span className="event-tags">
           <span className={`stage stage-${stage}`}>{STAGE_LABEL[stage]}</span>
-          {terms.requiresApproval && <span className="stage stage-approval">Host approves guests</span>}
+          <TypeChips ticket={terms.ticketPrice > 0n ? formatUsdShort(terms.ticketPrice) : undefined} approval={terms.requiresApproval} />
         </span>
       </div>
       <div className="app-grid">

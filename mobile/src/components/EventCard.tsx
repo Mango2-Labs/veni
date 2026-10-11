@@ -1,6 +1,6 @@
 import { Image, Pressable, Text, View } from 'react-native'
 import { coverIndexOf, type EventCardData } from '@veni/sdk'
-import { Chip } from './Chip'
+import { Chip, TypeChips } from './Chip'
 import { CityStamp } from './CityStamp'
 import { colors, fonts, radius, type } from '@/lib/theme'
 
@@ -43,15 +43,11 @@ export function EventCard({ event, onPress }: { event: EventCardData; onPress?: 
         <Text style={{ ...type.small, color: colors.ink2 }}>
           {event.when} · {event.place}
         </Text>
-        {event.stage || event.approval || event.hostRecord ? (
-          <View className="mt-1 flex-row flex-wrap items-center" style={{ gap: 8 }}>
-            {event.stage ? <Chip label={event.stage.label} tone={event.stage.className} /> : null}
-            {event.approval ? <Chip label="Host approves" tone="stage-approval" /> : null}
-            {event.hostRecord ? (
-              <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: colors.tealText }}>{event.hostRecord}</Text>
-            ) : null}
-          </View>
-        ) : null}
+        <View className="mt-1 flex-row flex-wrap items-center" style={{ gap: 8 }}>
+          {event.stage ? <Chip label={event.stage.label} tone={event.stage.className} /> : null}
+          <TypeChips ticket={event.ticket} approval={event.approval} />
+          {event.hostRecord ? <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: colors.tealText }}>{event.hostRecord}</Text> : null}
+        </View>
         <View
           className="mt-2 flex-row items-center justify-between pt-3"
           style={{ borderTopWidth: 1, borderStyle: 'dashed', borderTopColor: colors.line }}

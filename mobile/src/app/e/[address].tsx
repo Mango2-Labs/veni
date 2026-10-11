@@ -23,7 +23,7 @@ import {
   stampDateOf,
 } from '@veni/sdk'
 import { Button } from '@/components/Button'
-import { Chip } from '@/components/Chip'
+import { Chip, TypeChips } from '@/components/Chip'
 import { CityStamp } from '@/components/CityStamp'
 import { COVERS } from '@/components/EventCard'
 import { hasDismissedStakeNotice, StakeNotice } from '@/components/StakeNotice'
@@ -119,7 +119,7 @@ function EventView({ address, snapshot }: { address: Address; snapshot: Snapshot
       ) : null}
       <View className="flex-row flex-wrap" style={{ gap: 8 }}>
         <Chip label={STAGE_LABEL[stage]} tone={`stage-${stage}`} />
-        {terms.requiresApproval ? <Chip label="Host approves guests" tone="stage-approval" /> : null}
+        <TypeChips ticket={terms.ticketPrice > 0n ? formatUsdShort(terms.ticketPrice) : undefined} approval={terms.requiresApproval} />
       </View>
 
       <HostRow event={event} />
