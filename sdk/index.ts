@@ -6,6 +6,7 @@ export * from "./client";
 export * from "./errors";
 export * from "./event-cards";
 export * from "./events";
+export * from "./luma";
 export * from "./payouts";
 export * from "./photos";
 export * from "./places";
