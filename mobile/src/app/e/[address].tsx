@@ -334,6 +334,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
       queryClient.invalidateQueries({ queryKey: eventKey(address) })
       queryClient.invalidateQueries({ queryKey: ['token', wallet] })
       queryClient.invalidateQueries({ queryKey: ['balances', wallet] })
+      queryClient.invalidateQueries({ queryKey: ['going', wallet] })
     }
   }
 
