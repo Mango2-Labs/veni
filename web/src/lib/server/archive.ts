@@ -112,7 +112,7 @@ function toPastEvent(row: EventRow): PastEvent {
   };
 }
 
-/** Events whose check-in has closed and where this wallet checked in, newest first. */
+/** Events that are over where this wallet checked in, newest first. */
 export async function pastEventsAttendedBy(wallet: Address, nowSeconds = Math.floor(Date.now() / 1000)) {
   const db = await getDatabase();
   const rows = await db.query<EventRow>(
