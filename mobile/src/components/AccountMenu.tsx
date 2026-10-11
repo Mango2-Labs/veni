@@ -7,6 +7,7 @@ import { Check, Copy } from 'lucide-react-native'
 import { Avatar } from './Avatar'
 import { formatUsd, LOW_SOL_LAMPORTS, STAKE_MINTS } from '@veni/sdk'
 import { tokenLabel, useWalletBalances } from '@/lib/balances'
+import { photoUrl } from '@/lib/people'
 import { useMyUsername } from '@/lib/username'
 import { useWallet } from '@/lib/wallet'
 import { colors, fonts, radius, type } from '@/lib/theme'
@@ -53,13 +54,13 @@ export function AccountMenu() {
         onPress={() => setOpen(true)}
         className="rounded-full active:opacity-80"
       >
-        <Avatar username={data?.username} size={40} />
+        <Avatar username={data?.username} photo={photoUrl(account.address, data?.photo)} size={40} />
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable accessibilityLabel="Close menu" className="flex-1 bg-ink/40" onPress={() => setOpen(false)}>
           <View style={{ borderRadius: radius.card }} className="mx-4 mt-24 overflow-hidden border border-line bg-paper" onStartShouldSetResponder={() => true}>
             <View className="flex-row items-center gap-3 border-b border-line p-4">
-              <Avatar username={data?.username} size={44} />
+              <Avatar username={data?.username} photo={photoUrl(account.address, data?.photo)} size={44} />
               <View className="flex-1">
                 <Text style={type.strong}>{data?.username ?? '…'}</Text>
                 <View className="flex-row items-center">
