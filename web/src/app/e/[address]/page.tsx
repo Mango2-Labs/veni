@@ -24,6 +24,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { DoorScanner } from "@/components/DoorScanner";
 import { CityStamp, coverClassOf, TypeLabels } from "@/components/EventCard";
+import { Face } from "@/components/Face";
 import { CoverBanner } from "@/components/EventCover";
 import { EventMap } from "@/components/EventMap";
 import { hasDismissedStakeNotice, StakeNotice } from "@/components/StakeNotice";
@@ -349,7 +350,10 @@ function EventView({
                 const checkedIn = guest.data.hasAttended;
                 return (
                   <li key={guest.address}>
-                    <WalletName wallet={guest.data.wallet} />
+                    <span className="member-name">
+                      <Face wallet={guest.data.wallet} className="member-face" />
+                      <WalletName wallet={guest.data.wallet} />
+                    </span>
                     <span className="member-tags">
                       {guest.data.wallet === wallet && <span className="tag tag-you">You</span>}
                       {checkedIn ? (
@@ -947,7 +951,7 @@ function HostCard({ event }: { event: EventAccount }) {
   }
   return (
     <Link className="host-card" href={`/h/${event.organizer}`}>
-      <span className="passport-face" aria-hidden="true">{initialsOf(hostName)}</span>
+      <Face wallet={event.organizer} initials={initialsOf(hostName)} />
       <span>
         <span className="host-card-name">{hostName}</span>
         <span className="host-card-record">{record || "\u00a0"}</span>

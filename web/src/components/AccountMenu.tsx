@@ -13,6 +13,7 @@ import {
 import { SOLANA_CLUSTER, shortAddress } from "@/lib/solana";
 import { fetchWalletBalances, LOW_SOL_LAMPORTS, STAKE_MINTS, usernameInitials, type WalletBalances } from "@veni/sdk";
 import { formatUsd, tokenLabel, veniReader } from "@/lib/veni";
+import { Face } from "@/components/Face";
 import { useUsernameOf } from "@/lib/usernames-client";
 
 const INSTALL_LINKS = [
@@ -59,7 +60,7 @@ export function AccountMenu() {
           aria-expanded={open}
           onClick={() => setOpen((isOpen) => !isOpen)}
         >
-          {username ? usernameInitials(username) : "?"}
+          <Face wallet={account.address} initials={username ? usernameInitials(username) : "?"} className="avatar-face" />
         </button>
       ) : (
         <button
