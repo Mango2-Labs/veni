@@ -304,6 +304,7 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
   const [message, setMessage] = useState<{ ok: boolean; text: string }>()
   const [noticeOpen, setNoticeOpen] = useState(false)
   const [scanning, setScanning] = useState(false)
+  const router = useRouter()
   if (!wallet || !client) return null
 
   const stage = stageOf(event, now)
@@ -347,7 +348,12 @@ function GuestActions({ address, snapshot }: { address: Address; snapshot: Snaps
 
   return (
     <View style={{ gap: 12 }}>
-      {isHost ? <Text style={type.strong}>You're hosting this event.</Text> : null}
+      {isHost ? (
+        <>
+          <Text style={type.strong}>You're hosting this event.</Text>
+          {stage === 'open' || stage === 'running' ? <Button label="Open door mode" onPress={() => router.push(`/door/${address}`)} /> : null}
+        </>
+      ) : null}
 
       {canSignUp ? (
         <>
