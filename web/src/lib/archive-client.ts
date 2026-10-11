@@ -29,20 +29,14 @@ export function useJson<T>(url: string | undefined, refresh = 0): Loaded<T> {
   return state.key === key ? state.loaded : { kind: "loading" };
 }
 
+export { turnoutOf } from "@veni/sdk";
+
 export function useHostPage(wallet: string | undefined, refresh = 0) {
   return useJson<HostPage>(wallet && `/api/hosts/${wallet}`, refresh);
 }
 
 export function usePastEventsAttendedBy(wallet: string | undefined) {
   return useJson<{ attended: PastEvent[] }>(wallet && `/api/me?wallet=${wallet}`);
-}
-
-/** "8 of 10 showed up", or what happened instead. */
-export function turnoutOf(event: PastEvent) {
-  if (event.isCancelled) return "Cancelled";
-  if (event.guestCount === 0) return "Nobody signed up";
-  if (event.attendedCount === 0) return "Nobody checked in";
-  return `${event.attendedCount} of ${event.guestCount} showed up`;
 }
 
 /** "80%" of guests who showed up, or undefined before anyone has signed up. */

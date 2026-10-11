@@ -66,9 +66,22 @@ export function requestTestFunds(wallet: Address) {
   return post<{ ok: true }>('/api/faucet', { wallet })
 }
 
+/** An event a host ran, as Veni's archive kept it once it was over. */
+export type HostedEvent = {
+  address: string
+  title: string
+  city: string
+  venue: string
+  startsAt: number
+  guestCount: number
+  attendedCount: number
+  isCancelled: boolean
+}
+
 export type HostPage = {
   profile?: { name: string }
   record: { eventCount: number; guestCount: number; attendedCount: number }
+  pastEvents: HostedEvent[]
 }
 
 export function fetchHostPage(wallet: Address) {

@@ -121,3 +121,11 @@ export function fitBytes(value: string, limit: number) {
   }
   return cut.trimEnd() + "…";
 }
+
+/** "8 of 10 showed up", or what happened instead, for an event that's over. */
+export function turnoutOf(event: { isCancelled: boolean; guestCount: number; attendedCount: number }) {
+  if (event.isCancelled) return "Cancelled";
+  if (event.guestCount === 0) return "Nobody signed up";
+  if (event.attendedCount === 0) return "Nobody checked in";
+  return `${event.attendedCount} of ${event.guestCount} showed up`;
+}
