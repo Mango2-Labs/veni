@@ -104,3 +104,4 @@
 .footerLinks { display: flex; flex-wrap: wrap; gap: 24px; font-size: 15px; }
 .footerLinks a { color: var(--ink-2); text-decoration: none; }
 .footerLinks a:hover { color: var(--orange-text); }
+.footerLinks a[aria-current="page"] { color: var(--ink); font-weight: 700; }
