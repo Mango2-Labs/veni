@@ -282,10 +282,10 @@ describe("a paid event at the same time as a free one", () => {
 
     jumpTo(chain, CHECK_IN_ENDS_AT + TICKET_HOLD_SECONDS);
     expect(await runCrank(chain)).toEqual({ settled: 0, guestsClosed: 0, eventsClosed: 1, waiting: [], errors: [] });
-    // Two tickets, Ana's included, to the paid event's host only.
-    expect(await usdcBalance(chain, paidHost.address)).toBe(50n * USDC);
+    // Two tickets, Ana's included, to the paid event's host only, less Veni's 1% ($0.50).
+    expect(await usdcBalance(chain, paidHost.address)).toBe(49_500_000n);
     expect(await usdcBalance(chain, freeHost.address)).toBe(0n);
-    expect(await usdcBalance(chain, TREASURY)).toBe(1_500_000n);
+    expect(await usdcBalance(chain, TREASURY)).toBe(1_500_000n + 500_000n);
     expect(accountsLeftBehind(chain)).toHaveLength(0);
   });
 });

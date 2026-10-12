@@ -297,7 +297,7 @@ function StakeCard({ event }: { event: EventAccount }) {
           </View>
         ))}
       </View>
-      <Text style={type.small}>Veni keeps 10% of no-show stakes{paid ? ', and nothing from tickets' : ''}.</Text>
+      <Text style={type.small}>Veni keeps 10% of no-show stakes{paid ? ', and 1% of tickets' : ''}.</Text>
     </View>
   )
 }

@@ -89,7 +89,7 @@ describe("upgrading from the program before stamps", () => {
     jumpTo(chain, CHECK_IN_ENDS_AT + TICKET_HOLD_SECONDS);
     await closeEvent(chain, event, organizer.address, { organizerTokenAccount: await usdcTokenAccountOf(organizer.address) });
 
-    expect(await usdcBalance(chain, organizer.address)).toBe(50n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(49_500_000n); // less Veni's 1%
     expect(accountsLeftBehind(chain)).toHaveLength(0);
   });
 });

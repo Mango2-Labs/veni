@@ -612,7 +612,7 @@ function StakeCard({ event }: { event: EventAccount }) {
         <p className="outcome outcome-miss"><b>You don&apos;t</b>{stake} goes to those who came</p>
         {isApplication && <p className="outcome outcome-wait"><b>Not picked</b>{formatUsdShort(totalOf(event))} back</p>}
       </div>
-      <p className="fee-note">Veni keeps 10% of no-show stakes{isPaid ? ", and nothing from tickets" : ""}.</p>
+      <p className="fee-note">Veni keeps 10% of no-show stakes{isPaid ? ", and 1% of tickets" : ""}.</p>
     </div>
   );
 }

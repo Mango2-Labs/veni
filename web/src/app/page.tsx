@@ -4,6 +4,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { Logo } from "@/components/Logo";
 import { Icon, type IconName } from "@/components/landing/parts";
 import { ProfileArt } from "@/components/landing/shots";
+import { SiteFooter } from "@/components/SiteFooter";
 import s from "@/components/landing/landing.module.css";
 
 // The hero speaks to hosts; below, hosts and guests each get their reasons.
@@ -87,7 +88,7 @@ export default function Home() {
             <h2>A guest list that turns up, and a record that travels with you</h2>
             <p>
               Every sign-up comes with a stake, so your headcount means something. Guests see your past events and how
-              many people came, so new guests trust you. No fee for hosts.
+              many people came, so new guests trust you. Free events cost you nothing.
             </p>
             <Link className="btn btn-primary" href="/new">Host an event</Link>
           </article>
@@ -105,17 +106,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className={s.footer}>
-        <div className={`${s.wrap} ${s.footerIn}`}>
-          <Link className={s.logo} href="/" aria-label="Veni home">
-            <Logo />
-          </Link>
-          <nav className={s.footerLinks} aria-label="Footer">
-            <Link href="/events">Find events</Link>
-            <Link href="/new">Host an event</Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

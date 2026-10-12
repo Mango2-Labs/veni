@@ -55,11 +55,6 @@ pub fn handle_settle_event(ctx: Context<SettleEvent>) -> Result<()> {
     Ok(())
 }
 
-/// Rounds down, so remainders stay with the attendees.
-fn basis_points_of(amount: u64, basis_points: u64) -> u64 {
-    amount * basis_points / BPS_PER_WHOLE
-}
-
 fn send_from_vault<'info>(
     accounts: &SettleEvent<'info>,
     destination: &Account<'info, TokenAccount>,

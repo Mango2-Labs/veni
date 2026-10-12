@@ -75,8 +75,17 @@ pub const MAX_CHECK_IN_CODE_CLOCK_AHEAD_SECONDS: i64 = 30;
 #[constant]
 pub const FEE_BPS: u64 = 1_000; // 10%
 
+/// Veni's cut of ticket money. The rest goes to the organizer.
+#[constant]
+pub const TICKET_FEE_BPS: u64 = 100; // 1%
+
 /// 10,000 basis points make 100%.
 pub const BPS_PER_WHOLE: u64 = 10_000;
+
+/// Rounds down, so remainders stay with the guests and the organizer.
+pub fn basis_points_of(amount: u64, basis_points: u64) -> u64 {
+    amount * basis_points / BPS_PER_WHOLE
+}
 
 /// Receives fees. A devnet keypair; a Squads multisig before mainnet.
 #[constant]

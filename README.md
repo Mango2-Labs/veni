@@ -15,7 +15,7 @@ Free sign-ups are easy to ignore, and hosts end up with empty seats. On Veni, gu
 Also:
 
 - **Approval events:** guests apply with their stake and the host picks who comes. Anyone not approved is refunded.
-- **Paid events:** the host gets the ticket money 24 hours after check-in closes, and stakes are capped at $5. Veni takes nothing from tickets.
+- **Paid events:** the host gets the ticket money 24 hours after check-in closes, minus a 1% fee, and stakes are capped at $5.
 - **Automatic payouts:** a crank settles each event and pays everyone. Nobody has to claim.
 - **Stamps:** every event a guest attends adds one to their stamp count, an account on Solana that nothing can delete. Each stamp is logged with its event and host.
 - **Usernames:** people pick a username, signed by their wallet, so nobody has to read wallet addresses.
