@@ -1,4 +1,6 @@
 # Moves devnet events along every 5 minutes: settles them, pays guests and hosts, archives and closes them.
+# GitHub runs schedules late and drops some, so each run cranks on a loop for almost the 6-hour job
+# limit, then starts the next run itself. The schedule restarts the chain if it ever stops.
 name: Crank
 
 on:
@@ -12,11 +14,12 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write # to start the next run
 
 jobs:
   crank:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -28,8 +31,14 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
         run: '[ -z "$RPC_URL" ] || echo "::add-mask::$(echo "$RPC_URL" | sed -E "s#^[a-z]+://([^/?]+).*#\1#")"'
-      - run: bun run crank
+      # Reaching the time limit is the normal end; any other exit stops the chain.
+      - name: Crank every 5 minutes for 5 hours 45 minutes
+        run: timeout 345m bun run crank:loop || [ $? -eq 124 ]
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           CRANK_KEYPAIR: ${{ secrets.CRANK_KEYPAIR }}
           ARCHIVE_URL: https://veni-phi.vercel.app/api/archive
+      - name: Start the next run
+        run: gh workflow run crank.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
