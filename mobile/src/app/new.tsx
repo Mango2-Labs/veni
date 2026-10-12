@@ -250,7 +250,7 @@ export default function NewEvent() {
           {ticket === 'Paid' ? (
             <View style={{ gap: 6 }}>
               <Field label="Ticket price ($)" value={form.ticketPrice} onChangeText={set('ticketPrice')} keyboardType="decimal-pad" />
-              <Text style={type.small}>Paid to you 24 hours after the event. Stake at most ${MAX_PAID_STAKE}.</Text>
+              <Text style={type.small}>Paid to you 24 hours after the event, minus a 1% fee. Stake at most ${MAX_PAID_STAKE}.</Text>
             </View>
           ) : null}
           <View className="flex-row" style={{ gap: 10 }}>

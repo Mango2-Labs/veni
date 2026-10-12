@@ -20,6 +20,7 @@ import {
 const SEED = Number(process.env.VENI_RANDOM_SEED ?? 20261010);
 const RUNS = Number(process.env.VENI_RANDOM_RUNS ?? 40);
 const FEE_BPS = 1_000n;
+const TICKET_FEE_BPS = 100n;
 
 /** A small seeded generator (mulberry32), so a failing run can be replayed. */
 function randomFrom(seed: number) {
@@ -79,7 +80,9 @@ function expectedOutcome(scenario: Scenario) {
   const fee = (forfeited * FEE_BPS) / 10_000n;
   const attendeePool = attendeeCount * stakeAmount + forfeited - fee;
   const guests = approved.map((isApproved, index) => (!isApproved ? paid : attended[index] ? -1n : 0n));
-  return { refundsEveryone, guests, organizer: approvedCount * ticketPrice, treasury: fee, attendeePool };
+  const tickets = approvedCount * ticketPrice;
+  const ticketFee = (tickets * TICKET_FEE_BPS) / 10_000n;
+  return { refundsEveryone, guests, organizer: tickets - ticketFee, treasury: fee + ticketFee, attendeePool };
 }
 
 async function play(chain: TestChain, scenario: Scenario) {

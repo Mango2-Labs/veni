@@ -374,7 +374,7 @@ function CreateEventForm({ account, lumaLink }: { account: UiWalletAccount; luma
             <div className="field">
               <label htmlFor="ticket-price">Ticket price ($)</label>
               <input id="ticket-price" type="number" min="0.01" max="1000" step="0.01" value={ticketPrice} onChange={(event) => setTicketPrice(event.target.value)} required />
-              <span className="field-hint">Paid to you 24 hours after the event.</span>
+              <span className="field-hint">Paid to you 24 hours after the event, minus a 1% fee.</span>
             </div>
           )}
           <div className="field">

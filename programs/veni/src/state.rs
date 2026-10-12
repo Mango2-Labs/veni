@@ -71,7 +71,8 @@ impl GeoPoint {
 //   close_guest also stamps each paid attendee: one more on their StampCount,
 //   logged as Stamped.
 //   Nobody checked in pays out like CANCELLED. Ticket money waits
-//   TICKET_HOLD_SECONDS in close_event; stakes don't.
+//   TICKET_HOLD_SECONDS in close_event, less Veni's TICKET_FEE_BPS; stakes
+//   don't wait.
 
 #[account]
 #[derive(InitSpace)]
@@ -114,6 +115,12 @@ impl Event {
         } else {
             u64::from(self.guest_count) * self.terms.ticket_price
         }
+    }
+
+    /// What the organizer is paid for tickets: all of it, less Veni's fee.
+    pub fn organizer_ticket_payout(&self) -> u64 {
+        let revenue = self.ticket_revenue();
+        revenue - basis_points_of(revenue, TICKET_FEE_BPS)
     }
 
     /// When ticket money can be paid, however early the event settled.

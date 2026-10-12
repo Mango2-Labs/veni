@@ -9,7 +9,8 @@ use crate::{
 };
 
 /// The last step: pays the organizer for tickets, sweeps the rest to the
-/// treasury, and closes the vault and event, returning both rents.
+/// treasury (Veni's ticket fee included), and closes the vault and event,
+/// returning both rents.
 #[derive(Accounts)]
 pub struct CloseEvent<'info> {
     /// Usually the crank. If nobody signed up, only the organizer can close
@@ -65,10 +66,11 @@ pub fn handle_close_event(ctx: Context<CloseEvent>) -> Result<()> {
         require!(has_every_guest_closed, VeniError::GuestsStillOpen);
     }
 
-    // Tickets go to the organizer after the hold. Refunded events owe nothing.
-    let ticket_revenue = event.ticket_revenue();
+    // Tickets go to the organizer after the hold, less Veni's fee, which the
+    // sweep below sends to the treasury. Refunded events owe nothing.
+    let ticket_payout = event.organizer_ticket_payout();
     let accounts = &ctx.accounts;
-    if ticket_revenue > 0 {
+    if ticket_payout > 0 {
         require!(now >= event.ticket_hold_ends_at(), VeniError::TicketsOnHold);
         let organizer_token_account =
             accounts.organizer_token_account.as_ref().ok_or(VeniError::HostTokenAccountMissing)?;
@@ -78,12 +80,12 @@ pub fn handle_close_event(ctx: Context<CloseEvent>) -> Result<()> {
             &accounts.stake_mint,
             &accounts.token_program,
             organizer_token_account,
-            ticket_revenue,
+            ticket_payout,
         )?;
     }
 
     // Anyone can send tokens to the vault, and it can't close until empty.
-    let leftover_amount = ctx.accounts.vault.amount - ticket_revenue;
+    let leftover_amount = ctx.accounts.vault.amount - ticket_payout;
     if leftover_amount > 0 {
         transfer_from_vault(
             &accounts.event,

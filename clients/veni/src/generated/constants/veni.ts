@@ -57,6 +57,8 @@ export const TEST_USD_MINT: Address = address(
   "Ew1wjmQLdugoqQNFiMV7SV7VZksfGXSriZ8WoynVPMW3",
 );
 
+export const TICKET_FEE_BPS: bigint = 100n;
+
 export const TICKET_HOLD_SECONDS: bigint = 86400n;
 
 export const TREASURY: Address = address(

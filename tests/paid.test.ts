@@ -1,7 +1,7 @@
 // Paid events: guests pay the organizer for a ticket on top of a small stake.
 // The ticket money waits in the vault until a day after check-in closes, then
 // goes to the organizer, unless every guest is refunded. Stakes don't wait.
-// Veni takes nothing from tickets.
+// Veni keeps 1% of the ticket money.
 import { describe, expect, test } from "bun:test";
 import { TOKEN_ERROR__INSUFFICIENT_FUNDS } from "@solana-program/token";
 import {
@@ -99,7 +99,7 @@ describe("signing up for a paid event", () => {
 });
 
 describe("after a paid event", () => {
-  test("the organizer gets every ticket, attendees their stake and a share, and Veni only 10% of no-show stakes", async () => {
+  test("the organizer gets every ticket less Veni's 1%, attendees their stake and a share, and Veni 10% of no-show stakes", async () => {
     const chain = await createTestChain();
     const organizer = await createOrganizer(chain);
     const { event, guests } = await createEventWithGuests(chain, 3, { organizer, terms: PAID });
@@ -116,9 +116,9 @@ describe("after a paid event", () => {
     expect(await usdcBalance(chain, first.wallet.address)).toBe(7_250_000n);
     expect(await usdcBalance(chain, second.wallet.address)).toBe(7_250_000n);
     expect(await usdcBalance(chain, noShow.wallet.address)).toBe(0n);
-    // Three tickets, the no-show's included.
-    expect(await usdcBalance(chain, organizer.address)).toBe(75n * USDC);
-    expect(await usdcBalance(chain, TREASURY)).toBe(500_000n);
+    // Three tickets, the no-show's included, less Veni's 1% ($0.75).
+    expect(await usdcBalance(chain, organizer.address)).toBe(74_250_000n);
+    expect(await usdcBalance(chain, TREASURY)).toBe(500_000n + 750_000n);
     expect(accountsLeftBehind(chain)).toHaveLength(0);
   });
 
@@ -186,7 +186,7 @@ describe("after a paid event", () => {
     jumpTo(chain, TICKETS_PAID_AT);
     chain.svm.expireBlockhash(); // the same transaction again, so it needs a new blockhash
     await closeEvent(chain, event, organizer.address, { organizerTokenAccount });
-    expect(await usdcBalance(chain, organizer.address)).toBe(50n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(49_500_000n);
   });
 
   test("counts the hold from when check-in closes, even when everyone checked in early", async () => {
@@ -204,7 +204,7 @@ describe("after a paid event", () => {
     jumpTo(chain, TICKETS_PAID_AT);
     chain.svm.expireBlockhash(); // the same transaction again, so it needs a new blockhash
     await closeEvent(chain, event, organizer.address, { organizerTokenAccount });
-    expect(await usdcBalance(chain, organizer.address)).toBe(50n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(49_500_000n);
   });
 
   test("declined and unreviewed applications get their ticket back too, and only approved guests pay the organizer", async () => {
@@ -227,12 +227,12 @@ describe("after a paid event", () => {
 
     expect(await usdcBalance(chain, approved.wallet.address)).toBe(5n * USDC);
     expect(await usdcBalance(chain, waiting.wallet.address)).toBe(30n * USDC);
-    expect(await usdcBalance(chain, organizer.address)).toBe(25n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(24_750_000n);
   });
 });
 
 describe("the crank at a paid event", () => {
-  test("pays attendees once check-in closes, and the organizer for every ticket a day later", async () => {
+  test("pays attendees once check-in closes, and the organizer for every ticket, less Veni's 1%, a day later", async () => {
     const chain = await createTestChain();
     const organizer = await createOrganizer(chain);
     const { event, guests } = await createEventWithGuests(chain, 2, { organizer, terms: PAID });
@@ -246,7 +246,7 @@ describe("the crank at a paid event", () => {
 
     jumpTo(chain, TICKETS_PAID_AT);
     expect(await runCrank(chain)).toEqual({ settled: 0, guestsClosed: 0, eventsClosed: 1, waiting: [], errors: [] });
-    expect(await usdcBalance(chain, organizer.address)).toBe(50n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(49_500_000n);
     expect(accountsLeftBehind(chain)).toHaveLength(0);
   });
 
@@ -267,6 +267,6 @@ describe("the crank at a paid event", () => {
 
     await giveUsdc(chain, organizer.address, 0n);
     expect(await runCrank(chain)).toMatchObject({ eventsClosed: 1, errors: [] });
-    expect(await usdcBalance(chain, organizer.address)).toBe(25n * USDC);
+    expect(await usdcBalance(chain, organizer.address)).toBe(24_750_000n);
   });
 });
