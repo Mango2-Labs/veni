@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccountMenu } from "@/components/AccountMenu";
 import { Logo } from "@/components/Logo";
 import { Icon, type IconName } from "@/components/landing/parts";
-import { ProfileArt } from "@/components/landing/shots";
+import { PhoneArt } from "@/components/landing/shots";
 import { SiteFooter } from "@/components/SiteFooter";
 import s from "@/components/landing/landing.module.css";
 
@@ -36,10 +36,10 @@ export default function Home() {
       <main>
         <section className={`${s.wrap} ${s.hero}`} aria-labelledby="hero-title">
           <div>
-            <h1 id="hero-title" className={s.h1}><span className={s.nowrap}>Sign-ups</span> that show up.</h1>
+            <h1 id="hero-title" className={s.h1}>Host events people show up to</h1>
             <p className={s.lead}>
-              The crypto-native way to host events. Guests stake a few dollars to sign up and get it back when they
-              show up.
+              From meetups to hackathons and side events, guests stake a few dollars to sign up and get it back when
+              they show up.
             </p>
             <div className={s.heroActions}>
               <Link className="btn btn-primary" href="/new">Host an event</Link>
@@ -58,7 +58,7 @@ export default function Home() {
             </div>
             {!(ANDROID_APK_URL || DAPP_STORE_URL) && <p className={s.badgeNote}>Coming soon to Android and Seeker</p>}
           </div>
-          <ProfileArt />
+          <PhoneArt />
         </section>
 
         <section className={s.steps} aria-labelledby="how-it-works">
