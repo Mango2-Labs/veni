@@ -17,7 +17,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Veni",
   description:
-    "Host events people show up to. Guests stake a few dollars to sign up and get it back when they check in.",
+    "Host events people show up to. Guests stake a few dollars to sign up and get it back when they show up.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

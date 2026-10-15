@@ -39,7 +39,7 @@ export default function Home() {
             <h1 id="hero-title" className={s.h1}>Host events people show up to</h1>
             <p className={s.lead}>
               From meetups to hackathons and side events, guests stake a few dollars to sign up and get it back when
-              they check in.
+              they show up.
             </p>
             <div className={s.heroActions}>
               <Link className="btn btn-primary" href="/new">Host an event</Link>
