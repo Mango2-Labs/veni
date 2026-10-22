@@ -209,3 +209,5 @@
 .footerLinks a { color: var(--ink-2); text-decoration: none; }
 .footerLinks a:hover { color: var(--orange-text); }
 .footerLinks a[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.footerX { display: inline-flex; align-items: center; }
+.footerX svg { width: 18px; height: 18px; fill: currentColor; }
